@@ -20,8 +20,7 @@ interface Column {
   label: string;
   minWidth?: number;
   maxWidth?: number;
-  align?: "right" | "center";
-  format?: (value: number) => string;
+  align?: "center";
 }
 
 const columns: readonly Column[] = [
