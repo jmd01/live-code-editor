@@ -9,6 +9,7 @@ import CreditCardOutline from 'mdi-material-ui/CreditCardOutline'
 import AccountPlusOutline from 'mdi-material-ui/AccountPlusOutline'
 import AlertCircleOutline from 'mdi-material-ui/AlertCircleOutline'
 import GoogleCirclesExtended from 'mdi-material-ui/GoogleCirclesExtended'
+import Brain from 'mdi-material-ui/Brain'
 
 // ** Type import
 import { VerticalNavItemsType } from 'src/@core/layouts/types'
@@ -24,6 +25,14 @@ const navigation = (): VerticalNavItemsType => {
       title: 'Account Settings',
       icon: AccountCogOutline,
       path: '/account-settings'
+    },
+    {
+      sectionTitle: 'Problems'
+    },
+    {
+      title: 'All Problems',
+      icon: Brain,
+      path: '/problems',
     },
     {
       sectionTitle: 'Pages'

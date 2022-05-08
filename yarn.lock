@@ -298,6 +298,11 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@mdi/font@^6.6.96":
+  version "6.6.96"
+  resolved "https://registry.yarnpkg.com/@mdi/font/-/font-6.6.96.tgz#4eee6faee5f44d3ec401d354fb95775cd6699575"
+  integrity sha512-FbcvG9z17hwZ7IwX5XeOR1UYGoLq+gTKq6XNPvJFuCpn599GdiPCJbAmmDBJb+jMYXjKYr0lCxfouWGxDA82sA==
+
 "@mui/base@5.0.0-alpha.69":
   version "5.0.0-alpha.69"
   resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-alpha.69.tgz#8511198d760de0795870f5ec63e53db73ba801ec"
@@ -2952,10 +2957,10 @@ prelude-ls@^1.2.1:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
-prettier@2.5.1:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.5.1.tgz#fff75fa9d519c54cf0fce328c1017d94546bc56a"
-  integrity sha512-vBZcPRUR5MZJwoyi3ZoyQlc1rXeEck8KgeC9AwwOn+exuxLxq5toTRDTSaVrXHxelDMHy9zlicw8u66yxoSUFg==
+prettier@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.6.2.tgz#e26d71a18a74c3d0f0597f55f01fb6c06c206032"
+  integrity sha512-PkUpF+qoXTqhOeWL9fu7As8LXsIUZ1WYaJiY/a7McAQzxjk82OF0tibkFXVCDImZtWxbvojFjerkiLb0/q8mew==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
@@ -3659,6 +3664,11 @@ tr46@^1.0.1:
   integrity sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=
   dependencies:
     punycode "^2.1.0"
+
+ts-pattern@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/ts-pattern/-/ts-pattern-4.0.2.tgz#b36afdb2de1ec0224539dcb7cea3a57c41453b9f"
+  integrity sha512-eHqR/7A6fcw05vCOfnL6RwgGJbVi9G/YHTdYdjYmElhDdJ1SMn7pWs+6+YuxygaFwQS/g+cIDlu+UD8IVpur1A==
 
 tsconfig-paths@^3.12.0, tsconfig-paths@^3.9.0:
   version "3.14.0"
