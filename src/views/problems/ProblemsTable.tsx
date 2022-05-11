@@ -1,6 +1,8 @@
 // ** React Imports
 import { useState, ChangeEvent } from "react";
 
+import Link from "next/link";
+
 // ** MUI Imports
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -150,7 +152,11 @@ const ProblemsTable = () => {
                             .with({ id: "locked" }, () => (
                               <Lock color={value ? "error" : "disabled"} />
                             ))
-                            .otherwise(() => value)}
+                            .otherwise(() => (
+                              <Link passHref href={"problems/problem"}>
+                                {value}
+                              </Link>
+                            ))}
                         </TableCell>
                       );
                     })}
