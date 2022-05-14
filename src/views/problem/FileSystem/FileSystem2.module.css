@@ -168,6 +168,7 @@
   margin-right: 2px;
   vertical-align: top;
   background-position: -110px -16px;
+  display: none;
 }
 .rc-tree-icon__close {
   margin-right: 2px;
