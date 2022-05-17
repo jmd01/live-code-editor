@@ -16,63 +16,97 @@ const problemData = {
   locked: false,
 };
 
+export type FileNode = {
+  id: string;
+  path: string;
+  contents: string;
+  isDir?: boolean;
+};
+
 const Problem = ({ id }: { id: string }) => {
   console.log(id);
 
-  const [tree, setTree] = useState<Record<string, string>>({
-    "util/encode.ts": `
+  const [tree, setTree] = useState<FileNode[]>([
+    {
+      id: "1",
+      path: "util/encode.ts",
+      contents: `
 
         export function encode(data: string): Uint8Array {
             
             return new Uint8Array(1)
         } 
     `,
-    "lib/foo.ts": `
-        
-        import { encode } from '../util/encode.ts'
-        
-        export function foo() {
-                
-           return encode('foo')
-        }
-    `,
-    "lib/bar.ts": `
-        
-        import { encode } from '../util/encode.ts'
+    },
+    {
+      id: "2",
+      path: "lib/foo.ts",
+      contents: `
 
-        export function bar() {
+      import { encode } from '../util/encode.ts'
 
-           return encode('bar')
-        }
-    `,
-    "lib/index.ts": `
-    
-        export * from './foo.ts'
+      export function foo() {
 
-        export * from './bar.ts'
-    `,
-    "fooz/barz/index.ts": `
-    
-        export * from './foo.ts'
+         return encode('foo')
+      }
+  `,
+    },
+    {
+      id: "3",
+      path: "lib/bar.ts",
+      contents: `
 
-        export * from './bar.ts'
-    `,
-    "fooz/foooooz.ts": `
-    
-        export * from './foo.ts'
+      import { encode } from '../util/encode.ts'
 
-        export * from './bar.ts'
-    `,
-    "index.ts": `
-        //import * as React from "react"
-        import { foo, bar } from './lib/index.ts'
+      export function bar() {
 
-        console.log(foo());
+         return encode('bar')
+      }
+  `,
+    },
+    {
+      id: "4",
+      path: "lib/index.ts",
+      contents: `
 
-        console.log(bar());
-    `,
-  });
+      export * from './foo.ts'
 
+      export * from './bar.ts'
+  `,
+    },
+    {
+      id: "5",
+      path: "fooz/barz/index.ts",
+      contents: `
+
+      export * from './foo.ts'
+
+      export * from './bar.ts'
+  `,
+    },
+    {
+      id: "6",
+      path: "fooz/foooooz.ts",
+      contents: `
+
+      export * from './foo.ts'
+
+      export * from './bar.ts'
+  `,
+    },
+    {
+      id: "7",
+      path: "index.ts",
+      contents: `
+      //import * as React from "react"
+      import { foo, bar } from './lib/index.ts'
+
+      console.log(foo());
+
+      console.log(bar());
+  `,
+    },
+  ]);
   return (
     <Grid container spacing={6} height={"100%"}>
       {/*<Grid item xs={12}>*/}
@@ -89,5 +123,4 @@ const Problem = ({ id }: { id: string }) => {
     </Grid>
   );
 };
-
 export default Problem;

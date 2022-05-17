@@ -11,6 +11,7 @@ import * as Path from "path-browserify";
 import type { DataNode, Key } from "rc-tree/lib/interface";
 import type { TreeNodeProps } from "rc-tree/lib";
 import type { EventDataNode } from "rc-tree/es/interface";
+import { FileNode } from "../../../pages/problems/problem";
 
 const STYLE = `
   .rc-tree-child-tree {
@@ -71,11 +72,11 @@ const FileSystem2 = ({
   tree,
   setTree,
 }: {
-  tree: Record<string, string>;
-  setTree: Dispatch<SetStateAction<Record<string, string>>>;
+  tree: FileNode[];
+  setTree: Dispatch<SetStateAction<FileNode[]>>;
 }) => {
   const theme = useTheme();
-  const paths = useMemo(() => Object.keys(tree), [tree]);
+  const paths = useMemo(() => tree.map(({ path }) => path), [tree]);
 
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([
@@ -115,47 +116,39 @@ const FileSystem2 = ({
     setTree((tree) => {
       // console.log(tree);
 
-      let updatedTree = {};
-      for (const path in tree) {
-        if (path.startsWith(dragPath)) {
-          console.log(dragPath, path, dropPath);
+      return tree.reduce<FileNode[]>((acc, file) => {
+        if (file.path.startsWith(dragPath)) {
+          console.log(dragPath, file.path, dropPath);
 
-          // lib/index.ts >> util/lib/index.ts
-          // foo/lib/index.ts >> util/foo/lib/index.ts
-          // foo/lib/index.ts >> util/lib/index.ts
-
-          const updatedPath2 = isLeaf(path) ? dragNode.pathSegment : dragPath;
           const regex = new RegExp(`${dragNode.pathSegment}.*$`);
-          const updatedPath3 = path.match(regex)?.[0] ?? "";
+          const updatedDropPath = file.path.match(regex)?.[0] ?? "";
 
           const updatedPath = `${getDropPathDirectory(
             dropNode
-          )}/${updatedPath3}`;
+          )}/${updatedDropPath}`;
 
           // If the new file path already exists
-          if (tree[updatedPath]) {
+          if (tree.some(({ path }) => path === updatedPath)) {
             // const uniquePath = getUniquePath(updatedPath, tree);
-            updatedTree = {
-              ...updatedTree,
-              [updatedPath + "(1)"]: tree[path],
-            };
+            return [
+              ...acc,
+              {
+                ...file,
+                path: updatedPath + "(1)",
+              },
+            ];
           } else {
-            updatedTree = {
-              ...updatedTree,
-              [updatedPath]: tree[path],
-            };
+            return [
+              ...acc,
+              {
+                ...file,
+                path: updatedPath,
+              },
+            ];
           }
-        } else {
-          updatedTree = {
-            ...updatedTree,
-            [path]: tree[path],
-          };
         }
-      }
-
-      console.log("updatedTree", updatedTree);
-
-      return updatedTree;
+        return [...acc, file];
+      }, []);
     });
   };
 
