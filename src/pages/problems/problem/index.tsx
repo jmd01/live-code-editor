@@ -51,6 +51,18 @@ const Problem = ({ id }: { id: string }) => {
 
         export * from './bar.ts'
     `,
+    "fooz/barz/index.ts": `
+    
+        export * from './foo.ts'
+
+        export * from './bar.ts'
+    `,
+    "fooz/foooooz.ts": `
+    
+        export * from './foo.ts'
+
+        export * from './bar.ts'
+    `,
     "index.ts": `
         //import * as React from "react"
         import { foo, bar } from './lib/index.ts'

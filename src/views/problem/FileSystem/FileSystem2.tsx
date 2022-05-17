@@ -1,113 +1,16 @@
-import React, { useMemo, useState } from "react";
-import Tree, { TreeNodeProps } from "rc-tree";
-
-import { DataNode, Key } from "rc-tree/lib/interface";
-import { TreeProps } from "rc-tree/es/Tree";
+import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
+import type { TreeProps } from "rc-tree";
+import Tree from "rc-tree";
 
 import "rc-tree/assets/index.css";
 import { Folder, FolderOpen } from "mdi-material-ui";
 import pathListToTree from "./utils/pathListToTree";
 import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-
-// const initialData: DataNode[] = [
-//   {
-//     title: <TreeNode id={"0-0-key"} title={"0-0-label"} />,
-//     key: "0-0-key",
-//     children: [
-//       {
-//         title: "0-0-0-label",
-//         key: "0-0-0-key",
-//         children: [
-//           {
-//             title: "0-0-0-0-label",
-//             key: "0-0-0-0-key",
-//           },
-//           {
-//             title: "0-0-0-1-label",
-//             key: "0-0-0-1-key",
-//           },
-//           {
-//             title: "0-0-0-2-label",
-//             key: "0-0-0-2-key",
-//           },
-//         ],
-//       },
-//       {
-//         title: "0-0-1-label",
-//         key: "0-0-1-key",
-//         children: [
-//           {
-//             title: "0-0-1-0-label",
-//             key: "0-0-1-0-key",
-//           },
-//           {
-//             title: "0-0-1-1-label",
-//             key: "0-0-1-1-key",
-//           },
-//           {
-//             title: "0-0-1-2-label",
-//             key: "0-0-1-2-key",
-//           },
-//         ],
-//       },
-//       {
-//         title: "0-0-2-label",
-//         key: "0-0-2-key",
-//       },
-//     ],
-//   },
-//   {
-//     title: "0-1-label",
-//     key: "0-1-key",
-//     children: [
-//       {
-//         title: "0-1-0-label",
-//         key: "0-1-0-key",
-//         children: [
-//           {
-//             title: "0-1-0-0-label",
-//             key: "0-1-0-0-key",
-//           },
-//           {
-//             title: "0-1-0-1-label",
-//             key: "0-1-0-1-key",
-//           },
-//           {
-//             title: "0-1-0-2-label",
-//             key: "0-1-0-2-key",
-//           },
-//         ],
-//       },
-//       {
-//         title: "0-1-1-label",
-//         key: "0-1-1-key",
-//         children: [
-//           {
-//             title: "0-1-1-0-label",
-//             key: "0-1-1-0-key",
-//           },
-//           {
-//             title: "0-1-1-1-label",
-//             key: "0-1-1-1-key",
-//           },
-//           {
-//             title: "0-1-1-2-label",
-//             key: "0-1-1-2-key",
-//           },
-//         ],
-//       },
-//       {
-//         title: "0-1-2-label",
-//         key: "0-1-2-key",
-//       },
-//     ],
-//   },
-//   {
-//     title: "0-2-label",
-//     key: "0-2-key",
-//   },
-// ];
+import * as Path from "path-browserify";
+import type { DataNode, Key } from "rc-tree/lib/interface";
+import type { TreeNodeProps } from "rc-tree/lib";
+import type { EventDataNode } from "rc-tree/es/interface";
 
 const STYLE = `
   .rc-tree-child-tree {
@@ -151,62 +54,25 @@ const STYLE = `
   }
 `;
 
-// const gData = [
-//   { title: '0-0', key: '0-0' },
-//   { title: '0-1', key: '0-1' },
-//   { title: '0-2', key: '0-2', children: [{ title: '0-2-0', key: '0-2-0' }] },
-// ];
-
-// const tree = {
-//   "util/encode.ts": `
-//
-//         export function encode(data: string): Uint8Array {
-//
-//             return new Uint8Array(1)
-//         }
-//     `,
-//   "lib/foo.ts": `
-//
-//         import { encode } from '../util/encode.ts'
-//
-//         export function foo() {
-//
-//            return encode('foo')
-//         }
-//     `,
-//   "lib/bar.ts": `
-//
-//         import { encode } from '../util/encode.ts'
-//
-//         export function bar() {
-//
-//            return encode('bar')
-//         }
-//     `,
-//   "lib/index.ts": `
-//
-//         export * from './foo.ts'
-//
-//         export * from './bar.ts'
-//     `,
-//   "index.ts": `
-//         //import * as React from "react"
-//         import { foo, bar } from './lib/index.ts'
-//
-//         console.log(foo());
-//
-//         console.log(bar());
-//     `,
-// };
-//
-// const paths = Object.keys(tree);
+declare module "rc-tree/es/interface" {
+  interface EventDataNode {
+    fullPath: string;
+    pathSegment: string;
+  }
+}
+declare module "rc-tree/lib/interface" {
+  interface DataNode {
+    fullPath: string;
+    pathSegment: string;
+  }
+}
 
 const FileSystem2 = ({
   tree,
   setTree,
 }: {
   tree: Record<string, string>;
-  setTree: (tree: Record<string, string>) => void;
+  setTree: Dispatch<SetStateAction<Record<string, string>>>;
 }) => {
   const theme = useTheme();
   const paths = useMemo(() => Object.keys(tree), [tree]);
@@ -221,82 +87,76 @@ const FileSystem2 = ({
   const treeifiedPaths: DataNode[] = useMemo(() => {
     return pathListToTree(paths);
   }, [paths]);
-  console.log(treeifiedPaths);
+  // console.log(treeifiedPaths);
 
   const onDragEnter: TreeProps["onDragEnter"] = ({ expandedKeys }) => {
-    console.log("enter", expandedKeys);
+    // console.log("enter", expandedKeys);
     setExpandedKeys(expandedKeys);
   };
 
   const onDrop: TreeProps["onDrop"] = (info) => {
     console.log("drop", info);
-    const dropKey = info.node.key.toString();
-    const dragKey = info.dragNode.key.toString();
-    const dropPos = info.node.pos.split("-");
-    const dropPosition =
-      info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
-    const loop = (
-      data: DataNode[],
-      key: string,
-      callback: (item: DataNode, index: number, arr: DataNode[]) => void
-    ) => {
-      data.forEach((item, index, arr) => {
-        if (item.key === key) {
-          callback(item, index, arr);
+    const dropNode = info.node;
+    const dropPath = info.node.fullPath;
 
-          return;
-        }
-        if (item.children) {
-          loop(item.children, key, callback);
-        }
-      });
-    };
-    const data = [...treeifiedPaths];
+    // const dropPath = info.node.children && info.node.children.length > 0 ? info.node.fullPath : ;
 
-    // Find dragObject
-    let dragObj!: DataNode;
-    loop(data, dragKey, (item, index, arr) => {
-      arr.splice(index, 1);
-      dragObj = item;
-    });
+    const dragNode = info.dragNode;
+    const dragPath = info.dragNode.fullPath;
 
-    if (!info.dropToGap) {
-      // Drop on the content
-      loop(data, dropKey, (item) => {
-        item.children = item.children || [];
+    // console.log(dropPath, dragPath);
 
-        // where to insert
-        item.children.push(dragObj);
-      });
-    } else if (
-      (info.node.children || []).length > 0 && // Has children
-      info.node.expanded && // Is expanded
-      dropPosition === 1 // On the bottom gap
-    ) {
-      loop(data, dropKey, (item) => {
-        item.children = item.children || [];
-
-        // where to insert
-        item.children.unshift(dragObj);
-      });
-    } else {
-      // Drop on the gap
-      let ar!: DataNode[];
-      let i!: number;
-      loop(data, dropKey, (item, index, arr) => {
-        ar = arr;
-        i = index;
-      });
-      if (dropPosition === -1) {
-        ar.splice(i, 0, dragObj);
-      } else {
-        ar && ar.splice(i + 1, 0, dragObj);
-      }
+    // Dropping on or into it's own directory is a noop
+    if (getDirectory(dragPath) === getDirectory(dropPath)) {
+      return;
     }
 
-    // TODO
-    // setTree([]);
+    setTree((tree) => {
+      // console.log(tree);
+
+      let updatedTree = {};
+      for (const path in tree) {
+        if (path.startsWith(dragPath)) {
+          console.log(dragPath, path, dropPath);
+
+          // lib/index.ts >> util/lib/index.ts
+          // foo/lib/index.ts >> util/foo/lib/index.ts
+          // foo/lib/index.ts >> util/lib/index.ts
+
+          const updatedPath2 = isLeaf(path) ? dragNode.pathSegment : dragPath;
+          const regex = new RegExp(`${dragNode.pathSegment}.*$`);
+          const updatedPath3 = path.match(regex)?.[0] ?? "";
+
+          const updatedPath = `${getDropPathDirectory(
+            dropNode
+          )}/${updatedPath3}`;
+
+          // If the new file path already exists
+          if (tree[updatedPath]) {
+            // const uniquePath = getUniquePath(updatedPath, tree);
+            updatedTree = {
+              ...updatedTree,
+              [updatedPath + "(1)"]: tree[path],
+            };
+          } else {
+            updatedTree = {
+              ...updatedTree,
+              [updatedPath]: tree[path],
+            };
+          }
+        } else {
+          updatedTree = {
+            ...updatedTree,
+            [path]: tree[path],
+          };
+        }
+      }
+
+      console.log("updatedTree", updatedTree);
+
+      return updatedTree;
+    });
   };
 
   const onExpand: TreeProps["onExpand"] = (expandedKeys) => {
@@ -342,45 +202,60 @@ const FileSystem2 = ({
     </Box>
   );
 };
-
 export default FileSystem2;
 
-// type MyDataNode = DataNode & {
-//   pathSegment: string;
+const isLeaf = (path: string): boolean => {
+  // console.log(node.pathSegment, Path.extname(node.pathSegment));
+
+  return !!Path.extname(path);
+};
+
+const getDropPathDirectory = (dropNode: EventDataNode): string => {
+  const dropPath = dropNode.fullPath;
+
+  if (isLeaf(dropNode.pathSegment)) {
+    console.log(
+      "isLeaf",
+      isLeaf(dropNode.pathSegment),
+      "pathSegment:",
+      dropNode.pathSegment,
+      "dropPath",
+      Path.dirname(dropPath)
+    );
+    return Path.dirname(dropPath);
+    // const pathToParentDir = dropPath.match(/.*\//);
+    // return pathToParentDir ? pathToParentDir[0] : "";
+  }
+
+  console.log(
+    "isLeaf",
+    isLeaf(dropNode.pathSegment),
+    "pathSegment:",
+    dropNode.pathSegment,
+    "dropPath:",
+    dropPath
+  );
+  return dropPath;
+};
+
+/**
+ * If leaf node, get parent dir, if dir then return itself
+ */
+const getUpdatedPath = (path: string) => {
+  return isLeaf(path) ? Path.dirname(path) : path;
+};
+
+/**
+ * If leaf node, get parent dir, if dir then return itself
+ */
+const getDirectory = (path: string) => {
+  return isLeaf(path) ? Path.dirname(path) : path;
+};
+
+// const getUniquePath = (
+//   updatedPath: string,
+//   tree: Record<string, string>,
+//   suffix = 1
+// ): string => {
+//   const filename = Path.basename()updatedPath;
 // };
-// const pathsToTree = (paths: string[]): MyDataNode[] => {
-//   const result: MyDataNode[] = [];
-//   const level: { result: MyDataNode[] } = {
-//     result,
-//   };
-//
-//   paths.forEach((path, index) => {
-//     path.split("/").reduce((r, pathSegment, index2) => {
-//       if (!(pathSegment in r)) {
-//         r = {
-//           ...r,
-//           [pathSegment]: { result: [] },
-//         };
-//         const key = `${index}-${index2}`;
-//
-//         // @ts-ignore
-//         const pathSegmentObj = r[pathSegment];
-//         r.result.push({
-//           key,
-//           title: (
-//             <TreeNode id={key} title={pathSegment} updateNode={() => {}} />
-//           ),
-//           pathSegment,
-//           children: pathSegmentObj.result,
-//         });
-//         return pathSegmentObj;
-//       }
-//     }, level);
-//   });
-//
-//   return result;
-// };
-//
-// const isMyDataNode = (
-//   value: MyDataNode | { result: MyDataNode[] }
-// ): value is MyDataNode => "pathSegment" in value;
