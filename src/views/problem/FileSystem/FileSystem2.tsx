@@ -1,4 +1,10 @@
-import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import type { TreeProps } from "rc-tree";
 import Tree from "rc-tree";
 
@@ -85,9 +91,40 @@ const FileSystem2 = ({
     "0-0-0-0-key",
   ]);
 
+  const updateFileName = useCallback(
+    (oldFilePath: string, newFilePath: string) => {
+      setTree((tree) =>
+        tree.map((file) => {
+          const regex = new RegExp(`^${oldFilePath}`);
+          return file.path.startsWith(oldFilePath)
+            ? {
+                ...file,
+                path: file.path.replace(regex, newFilePath),
+              }
+            : file;
+        })
+      );
+    },
+    [setTree]
+  );
+
+  const deleteFile = useCallback(
+    (filePath: string) => {
+      setTree((tree) =>
+        tree.reduce<FileNode[]>(
+          (acc, file) =>
+            file.path.startsWith(filePath) ? acc : [...acc, file],
+          []
+        )
+      );
+    },
+    [setTree]
+  );
+
   const treeifiedPaths: DataNode[] = useMemo(() => {
-    return pathListToTree(paths);
-  }, [paths]);
+    return pathListToTree({ paths, updateFileName, deleteFile });
+  }, [paths, updateFileName, deleteFile]);
+
   // console.log(treeifiedPaths);
 
   const onDragEnter: TreeProps["onDragEnter"] = ({ expandedKeys }) => {

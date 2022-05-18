@@ -5,17 +5,25 @@ import { styled } from "@mui/material/styles";
 import React, { ChangeEvent, FocusEvent, useState } from "react";
 import { useHover } from "react-use";
 
-export const TreeNode = ({
-  title,
-  id,
-  updateNode,
-}: {
-  title: string;
+type TreeNodeProps = {
+  fullPath: string;
+  pathToSegment: string;
+  pathSegment: string;
   id: string;
-  updateNode: () => void;
-}) => {
+  updateFileName: (oldFilePath: string, newFilePath: string) => void;
+  deleteFile: (filePath: string) => void;
+};
+
+export const TreeNode = ({
+  fullPath,
+  pathToSegment,
+  pathSegment,
+  id,
+  updateFileName,
+  deleteFile,
+}: TreeNodeProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(title);
+  const [value, setValue] = useState(pathSegment);
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
@@ -23,9 +31,16 @@ export const TreeNode = ({
 
   const onBlur = (e: FocusEvent<HTMLInputElement>) => {
     setIsEditing(false);
+    console.log(fullPath, pathToSegment, pathSegment, e.target.value);
+    updateFileName(
+      pathToSegment,
+      pathToSegment.replace(pathSegment, e.target.value)
+    );
+  };
 
-    // TODO
-    updateNode();
+  const onDelete = () => {
+    confirm("Are you sure you want to delete this file") &&
+      deleteFile(pathToSegment);
   };
 
   const element = (hovered: boolean) => (
@@ -38,9 +53,11 @@ export const TreeNode = ({
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <span>{title}</span>
+        <span>{pathSegment}</span>
       )}
-      {hovered && <NodeEditor setIsEditing={setIsEditing} />}
+      {hovered && (
+        <NodeEditor setIsEditing={setIsEditing} onDelete={onDelete} />
+      )}
     </Stack>
   );
   const [hoverable] = useHover(element);
@@ -60,8 +77,10 @@ const MinimalIconButton = styled(IconButton)`
 
 const NodeEditor = ({
   setIsEditing,
+  onDelete,
 }: {
   setIsEditing: (value: boolean) => void;
+  onDelete: () => void;
 }) => {
   return (
     <Stack direction={"row"} padding={"0 8px"} gap={1} height={24}>
@@ -73,13 +92,18 @@ const NodeEditor = ({
       >
         <Pencil sx={{ fontSize: "1rem" }} />
       </MinimalIconButton>
-      <MinimalIconButton>
+      <MinimalIconButton
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsEditing(true);
+        }}
+      >
         <FileDocument sx={{ fontSize: "1rem" }} />
       </MinimalIconButton>
       <MinimalIconButton>
         <Folder sx={{ fontSize: "1rem" }} />
       </MinimalIconButton>
-      <MinimalIconButton>
+      <MinimalIconButton onClick={onDelete}>
         <Close sx={{ fontSize: "1rem" }} />
       </MinimalIconButton>
     </Stack>

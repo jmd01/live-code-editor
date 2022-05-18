@@ -9,12 +9,23 @@ export interface TreeNodeType {
   children: TreeNodeType[];
 }
 
-function createNode(
-  fullPath: string,
-  splitPath: string[],
-  tree: TreeNodeType[],
-  index: number | string
-): void {
+type CreateNodeProps = {
+  fullPath: string;
+  splitPath: string[];
+  tree: TreeNodeType[];
+  index: number | string;
+  updateFileName: (oldFilePath: string, newFilePath: string) => void;
+  deleteFile: (filePath: string) => void;
+};
+
+function createNode({
+  fullPath,
+  splitPath,
+  tree,
+  index,
+  updateFileName,
+  deleteFile,
+}: CreateNodeProps): void {
   const pathSegment = splitPath.shift();
 
   const splitFullPath = fullPath.split("/");
@@ -27,7 +38,14 @@ function createNode(
 
   if (idx < 0) {
     const key = `${index}-0`;
-
+    // console.log(
+    //   "fullPath",
+    //   fullPath,
+    //   "pathToSegment",
+    //   pathToSegment,
+    //   "pathSegment",
+    //   pathSegment
+    // );
     pathSegment &&
       tree.push({
         fullPath: pathToSegment,
@@ -35,29 +53,60 @@ function createNode(
         title: (
           <TreeNode
             id={key}
-            title={pathSegment}
-            updateNode={() => {
-              console.log("updateNode");
-            }}
+            fullPath={fullPath}
+            pathToSegment={pathToSegment}
+            pathSegment={pathSegment}
+            updateFileName={updateFileName}
+            deleteFile={deleteFile}
           />
         ),
         key,
         children: [],
       });
     if (splitPath.length !== 0) {
-      createNode(fullPath, splitPath, tree[tree.length - 1].children, key);
+      createNode({
+        fullPath,
+        splitPath,
+        tree: tree[tree.length - 1].children,
+        index: key,
+        updateFileName,
+        deleteFile,
+      });
     }
   } else {
-    createNode(fullPath, splitPath, tree[idx].children, `${index}-${idx}`);
+    createNode({
+      fullPath,
+      splitPath,
+      tree: tree[idx].children,
+      index: `${index}-${idx}`,
+      updateFileName,
+      deleteFile,
+    });
   }
 }
 
-export default function pathListToTree(data: string[]): TreeNodeType[] {
+type PathListToTreeProps = {
+  paths: string[];
+  updateFileName: (oldFilePath: string, newFilePath: string) => void;
+  deleteFile: (filePath: string) => void;
+};
+export default function pathListToTree({
+  paths,
+  updateFileName,
+  deleteFile,
+}: PathListToTreeProps): TreeNodeType[] {
   const tree: TreeNodeType[] = [];
-  for (let i = 0; i < data.length; i++) {
-    const path: string = data[i];
-    const split: string[] = path.split("/");
-    createNode(path, split, tree, i);
+  for (let i = 0; i < paths.length; i++) {
+    const fullPath: string = paths[i];
+    const splitPath: string[] = fullPath.split("/");
+    createNode({
+      fullPath,
+      splitPath,
+      tree,
+      index: i,
+      updateFileName,
+      deleteFile,
+    });
   }
 
   return tree;
