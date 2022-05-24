@@ -1,9 +1,17 @@
-import { Stack } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+} from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import { Close, FileDocument, Folder, Pencil } from "mdi-material-ui";
 import { styled } from "@mui/material/styles";
 import React, { ChangeEvent, FocusEvent, useState } from "react";
 import { useHover } from "react-use";
+import { isLeaf, isValidName } from "./utils/pathFns";
 
 type TreeNodeProps = {
   fullPath: string;
@@ -12,6 +20,11 @@ type TreeNodeProps = {
   id: string;
   updateFileName: (oldFilePath: string, newFilePath: string) => void;
   deleteFile: (filePath: string) => void;
+  addFile: (
+    pathToSegment: string,
+    newFileName: string,
+    isDir?: boolean
+  ) => void;
 };
 
 export const TreeNode = ({
@@ -21,17 +34,42 @@ export const TreeNode = ({
   id,
   updateFileName,
   deleteFile,
+  addFile,
 }: TreeNodeProps) => {
+  const [isAddingDir, setIsAddingDir] = useState<boolean>();
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(pathSegment);
+  const [isEditedNameValid, setIsEditedNameValid] = useState(true);
+  const [isAddNameValid, setIsAddNameValid] = useState(false);
+  const [editFilenameValue, setEditFilenameValue] = useState(pathSegment);
+  const [addFilenameValue, setAddFilenameValue] = useState("");
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
+  const onEditInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setEditFilenameValue(e.target.value);
+    if (!isValidName(e.target.value, !isLeaf(pathToSegment))) {
+      setIsEditedNameValid(false);
+    } else {
+      setIsEditedNameValid(true);
+    }
+  };
+  const onAddInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setAddFilenameValue(e.target.value);
+    if (!isValidName(e.target.value, !!isAddingDir)) {
+      setIsAddNameValid(false);
+    } else {
+      setIsAddNameValid(true);
+    }
   };
 
+  // console.log("isEditedNameValid", isEditedNameValid);
+
   const onBlur = (e: FocusEvent<HTMLInputElement>) => {
-    setIsEditing(false);
     console.log(fullPath, pathToSegment, pathSegment, e.target.value);
+
+    if (!isEditedNameValid) {
+      return;
+    }
+
+    setIsEditing(false);
     updateFileName(
       pathToSegment,
       pathToSegment.replace(pathSegment, e.target.value)
@@ -43,26 +81,70 @@ export const TreeNode = ({
       deleteFile(pathToSegment);
   };
 
+  const onAdd = (isDir?: boolean) => {
+    setIsAddingDir(isDir);
+    setDialogOpen(true);
+  };
+
+  const onAddFile = () => {
+    if (!isAddNameValid) {
+      return;
+    }
+    addFile(pathToSegment, addFilenameValue, isAddingDir);
+    setDialogOpen(false);
+  };
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const element = (hovered: boolean) => (
     <Stack justifyContent="space-between" direction={"row"} width={"100%"}>
       {isEditing ? (
         <NameInput
-          value={value}
-          onChange={onChange}
+          value={editFilenameValue}
+          onChange={onEditInputChange}
           onBlur={onBlur}
           onClick={(e) => e.stopPropagation()}
+          error={!isEditedNameValid}
         />
       ) : (
         <span>{pathSegment}</span>
       )}
       {hovered && (
-        <NodeEditor setIsEditing={setIsEditing} onDelete={onDelete} />
+        <NodeEditor
+          setIsEditing={setIsEditing}
+          onDelete={onDelete}
+          onAdd={onAdd}
+        />
       )}
     </Stack>
   );
   const [hoverable] = useHover(element);
 
-  return hoverable;
+  return (
+    <>
+      {hoverable}
+      <Dialog onClose={() => setDialogOpen(false)} open={dialogOpen}>
+        <DialogTitle>Add new</DialogTitle>
+        <DialogContent>
+          <Stack direction="row" sx={{ gap: "12px" }} paddingTop={2}>
+            <TextField
+              id="outlined-basic"
+              label="New filename"
+              variant="outlined"
+              size="small"
+              value={addFilenameValue}
+              onChange={onAddInputChange}
+              error={!isAddNameValid}
+              helperText="Filenames must have an extension eg .ts"
+            />
+            <Button variant="contained" onClick={() => onAddFile()}>
+              Add
+            </Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 };
 
 const MinimalIconButton = styled(IconButton)`
@@ -78,9 +160,11 @@ const MinimalIconButton = styled(IconButton)`
 const NodeEditor = ({
   setIsEditing,
   onDelete,
+  onAdd,
 }: {
   setIsEditing: (value: boolean) => void;
   onDelete: () => void;
+  onAdd: (isDir?: boolean) => void;
 }) => {
   return (
     <Stack direction={"row"} padding={"0 8px"} gap={1} height={24}>
@@ -95,12 +179,17 @@ const NodeEditor = ({
       <MinimalIconButton
         onClick={(e) => {
           e.stopPropagation();
-          setIsEditing(true);
+          onAdd();
         }}
       >
         <FileDocument sx={{ fontSize: "1rem" }} />
       </MinimalIconButton>
-      <MinimalIconButton>
+      <MinimalIconButton
+        onClick={(e) => {
+          e.stopPropagation();
+          onAdd(true);
+        }}
+      >
         <Folder sx={{ fontSize: "1rem" }} />
       </MinimalIconButton>
       <MinimalIconButton onClick={onDelete}>
@@ -110,8 +199,9 @@ const NodeEditor = ({
   );
 };
 
-const NameInput = styled("input")`
+const NameInput = styled("input")<{ error: boolean }>`
   border: none;
   outline: none;
   height: 22px;
+  ${({ error, theme }) => error && `color: ${theme.palette.error.main}`};
 `;

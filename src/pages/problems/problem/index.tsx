@@ -20,7 +20,7 @@ export type FileNode = {
   id: string;
   path: string;
   contents: string;
-  isDir?: boolean;
+  isEmptyDir?: boolean;
 };
 
 const Problem = ({ id }: { id: string }) => {
@@ -105,6 +105,12 @@ const Problem = ({ id }: { id: string }) => {
 
       console.log(bar());
   `,
+    },
+    {
+      id: "8",
+      path: "foo/bar",
+      isEmptyDir: true,
+      contents: ``,
     },
   ]);
   return (

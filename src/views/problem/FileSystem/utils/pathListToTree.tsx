@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { TreeNode } from "../TreeNode";
+import { FileNode } from "../../../../pages/problems/problem";
 
 export interface TreeNodeType {
   fullPath: string;
@@ -7,24 +8,29 @@ export interface TreeNodeType {
   key: string;
   title: ReactNode;
   children: TreeNodeType[];
+  isLeaf?: boolean;
 }
 
 type CreateNodeProps = {
   fullPath: string;
   splitPath: string[];
+  isEmptyDir: boolean | undefined;
   tree: TreeNodeType[];
   index: number | string;
   updateFileName: (oldFilePath: string, newFilePath: string) => void;
   deleteFile: (filePath: string) => void;
+  addFile: (pathToSegment: string, newFileName: string) => void;
 };
 
 function createNode({
   fullPath,
   splitPath,
+  isEmptyDir,
   tree,
   index,
   updateFileName,
   deleteFile,
+  addFile,
 }: CreateNodeProps): void {
   const pathSegment = splitPath.shift();
 
@@ -38,76 +44,85 @@ function createNode({
 
   if (idx < 0) {
     const key = `${index}-0`;
-    // console.log(
-    //   "fullPath",
-    //   fullPath,
-    //   "pathToSegment",
-    //   pathToSegment,
-    //   "pathSegment",
-    //   pathSegment
-    // );
     pathSegment &&
       tree.push({
         fullPath: pathToSegment,
         pathSegment,
         title: (
           <TreeNode
-            id={key}
+            id={pathToSegment}
             fullPath={fullPath}
             pathToSegment={pathToSegment}
             pathSegment={pathSegment}
             updateFileName={updateFileName}
             deleteFile={deleteFile}
+            addFile={addFile}
           />
         ),
-        key,
+        key: pathToSegment,
         children: [],
+        isLeaf:
+          typeof isEmptyDir === "boolean" && isEmptyDir ? false : undefined,
       });
     if (splitPath.length !== 0) {
       createNode({
         fullPath,
         splitPath,
+        isEmptyDir,
         tree: tree[tree.length - 1].children,
         index: key,
         updateFileName,
         deleteFile,
+        addFile,
       });
     }
   } else {
     createNode({
       fullPath,
       splitPath,
+      isEmptyDir,
       tree: tree[idx].children,
       index: `${index}-${idx}`,
       updateFileName,
       deleteFile,
+      addFile,
     });
   }
 }
 
 type PathListToTreeProps = {
-  paths: string[];
+  tree: FileNode[];
   updateFileName: (oldFilePath: string, newFilePath: string) => void;
   deleteFile: (filePath: string) => void;
+  addFile: (
+    pathToSegment: string,
+    newFileName: string,
+    isDir?: boolean
+  ) => void;
 };
 export default function pathListToTree({
-  paths,
+  tree,
   updateFileName,
   deleteFile,
+  addFile,
 }: PathListToTreeProps): TreeNodeType[] {
-  const tree: TreeNodeType[] = [];
-  for (let i = 0; i < paths.length; i++) {
-    const fullPath: string = paths[i];
+  const treeNodes: TreeNodeType[] = [];
+  for (let i = 0; i < tree.length; i++) {
+    const fileNode = tree[i];
+    const isEmptyDir = fileNode.isEmptyDir;
+    const fullPath: string = fileNode.path;
     const splitPath: string[] = fullPath.split("/");
     createNode({
       fullPath,
       splitPath,
-      tree,
+      isEmptyDir,
+      tree: treeNodes,
       index: i,
       updateFileName,
       deleteFile,
+      addFile,
     });
   }
 
-  return tree;
+  return treeNodes;
 }
