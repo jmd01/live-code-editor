@@ -166,7 +166,7 @@ const FileSystem2 = ({
     return pathListToTree({ tree, updateFileName, deleteFile, addFile });
   }, [tree, updateFileName, deleteFile, addFile]);
 
-  console.log(treeifiedPaths);
+  console.log("tree", tree, "treeifiedPaths", treeifiedPaths);
 
   const onDragEnter: TreeProps["onDragEnter"] = ({ expandedKeys }) => {
     setExpandedKeys(expandedKeys);
@@ -215,12 +215,21 @@ const FileSystem2 = ({
             dropPath
           );
 
-          const regex = new RegExp(`${dragNode.pathSegment}.*$`);
-          const updatedDropPath = file.path.match(regex)?.[0] ?? "";
+          // const regex = new RegExp(`${dragNode.pathSegment}.*$`);
+          // const updatedDropPath = file.path.match(regex)?.[0] ?? "";
+          const filepathBelowDragPath = file.path.split(dragPath)?.[1] ?? "";
+          const updatedDropPath = `${dragNode.pathSegment}${filepathBelowDragPath}`;
 
           const updatedPath = `${getDropPathDirectory(
             dropNode
           )}/${updatedDropPath}`;
+
+          console.log(
+            "updatedDropPath",
+            updatedDropPath,
+            "updatedPath",
+            updatedPath
+          );
 
           // If the new file path already exists
           if (tree.some(({ path }) => path === updatedPath)) {
@@ -296,27 +305,27 @@ const getDropPathDirectory = (dropNode: EventDataNode): string => {
   const dropPath = dropNode.fullPath;
 
   if (isLeaf(dropNode.pathSegment)) {
-    console.log(
-      "isLeaf",
-      isLeaf(dropNode.pathSegment),
-      "pathSegment:",
-      dropNode.pathSegment,
-      "dropPath",
-      Path.dirname(dropPath)
-    );
+    // console.log(
+    //   "isLeaf",
+    //   isLeaf(dropNode.pathSegment),
+    //   "pathSegment:",
+    //   dropNode.pathSegment,
+    //   "dropPath",
+    //   Path.dirname(dropPath)
+    // );
     return Path.dirname(dropPath);
     // const pathToParentDir = dropPath.match(/.*\//);
     // return pathToParentDir ? pathToParentDir[0] : "";
   }
 
-  console.log(
-    "isLeaf",
-    isLeaf(dropNode.pathSegment),
-    "pathSegment:",
-    dropNode.pathSegment,
-    "dropPath:",
-    dropPath
-  );
+  // console.log(
+  //   "isLeaf",
+  //   isLeaf(dropNode.pathSegment),
+  //   "pathSegment:",
+  //   dropNode.pathSegment,
+  //   "dropPath:",
+  //   dropPath
+  // );
   return dropPath;
 };
 

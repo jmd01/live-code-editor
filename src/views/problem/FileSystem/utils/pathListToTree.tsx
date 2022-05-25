@@ -35,8 +35,8 @@ function createNode({
   const pathSegment = splitPath.shift();
 
   const splitFullPath = fullPath.split("/");
-  const segmentIdx = splitFullPath.indexOf(pathSegment ?? "");
-  const pathToSegment = splitFullPath.slice(0, segmentIdx + 1).join("/");
+  const depth = index.toString().split("-");
+  const pathToSegment = splitFullPath.slice(0, depth.length).join("/");
 
   const idx = tree.findIndex((e: TreeNodeType) => {
     return e.pathSegment == pathSegment;
@@ -106,6 +106,7 @@ export default function pathListToTree({
   deleteFile,
   addFile,
 }: PathListToTreeProps): TreeNodeType[] {
+  console.log(tree);
   const treeNodes: TreeNodeType[] = [];
   for (let i = 0; i < tree.length; i++) {
     const fileNode = tree[i];
