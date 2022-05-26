@@ -3,7 +3,7 @@ import { Stack } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Editor from "../../../views/problem/Editor";
 import Preview from "../../../views/problem/Preview";
-import FileSystem2 from "../../../views/problem/FileSystem/FileSystem2";
+import FileSystem from "../../../views/problem/FileSystem/FileSystem";
 import { useState } from "react";
 
 const problemData = {
@@ -29,7 +29,7 @@ const Problem = ({ id }: { id: string }) => {
   const [tree, setTree] = useState<FileNode[]>([
     {
       id: "1",
-      path: "util/encode.ts",
+      path: "util/encode.css",
       contents: `
 
         export function encode(data: string): Uint8Array {
@@ -40,7 +40,7 @@ const Problem = ({ id }: { id: string }) => {
     },
     {
       id: "2",
-      path: "lib/foo.ts",
+      path: "lib/foo.js",
       contents: `
 
       import { encode } from '../util/encode.ts'
@@ -53,7 +53,7 @@ const Problem = ({ id }: { id: string }) => {
     },
     {
       id: "3",
-      path: "lib/bar.ts",
+      path: "lib/bar.html",
       contents: `
 
       import { encode } from '../util/encode.ts'
@@ -66,7 +66,7 @@ const Problem = ({ id }: { id: string }) => {
     },
     {
       id: "4",
-      path: "lib/index.ts",
+      path: "lib/.index",
       contents: `
 
       export * from './foo.ts'
@@ -224,6 +224,8 @@ const Problem = ({ id }: { id: string }) => {
   //   // },
   // ]);
 
+  const [activeFile, setActiveFile] = useState<FileNode>();
+
   return (
     <Grid container spacing={6} height={"100%"}>
       {/*<Grid item xs={12}>*/}
@@ -232,8 +234,12 @@ const Problem = ({ id }: { id: string }) => {
       {/*</Grid>*/}
       <Grid item xs={12} height={"100%"}>
         <Stack direction="row" height={"100%"}>
-          <FileSystem2 tree={tree} setTree={setTree} />
-          <Editor />
+          <FileSystem
+            tree={tree}
+            setTree={setTree}
+            setActiveFile={setActiveFile}
+          />
+          <Editor file={activeFile} />
           <Preview />
         </Stack>
       </Grid>

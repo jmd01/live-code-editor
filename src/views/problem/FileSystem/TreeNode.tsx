@@ -12,12 +12,13 @@ import { styled } from "@mui/material/styles";
 import React, { ChangeEvent, FocusEvent, useState } from "react";
 import { useHover } from "react-use";
 import { isLeaf, isValidName } from "./utils/pathFns";
+import { FileNode } from "../../../pages/problems/problem";
+import { Key } from "rc-tree/lib/interface";
 
-type TreeNodeProps = {
-  fullPath: string;
+export type TreeNodeProps = {
+  fileNode: FileNode;
   pathToSegment: string;
   pathSegment: string;
-  id: string;
   updateFileName: (oldFilePath: string, newFilePath: string) => void;
   deleteFile: (filePath: string) => void;
   addFile: (
@@ -25,16 +26,19 @@ type TreeNodeProps = {
     newFileName: string,
     isDir?: boolean
   ) => void;
+  setActiveFile: (value: FileNode) => void;
+  setExpandedKeys: (value: (keys: Key[]) => Key[]) => void;
 };
 
 export const TreeNode = ({
-  fullPath,
+  fileNode,
   pathToSegment,
   pathSegment,
-  id,
   updateFileName,
   deleteFile,
   addFile,
+  setActiveFile,
+  setExpandedKeys,
 }: TreeNodeProps) => {
   const [isAddingDir, setIsAddingDir] = useState<boolean>();
   const [isEditing, setIsEditing] = useState(false);
@@ -60,11 +64,7 @@ export const TreeNode = ({
     }
   };
 
-  // console.log("isEditedNameValid", isEditedNameValid);
-
   const onBlur = (e: FocusEvent<HTMLInputElement>) => {
-    console.log(fullPath, pathToSegment, pathSegment, e.target.value);
-
     if (!isEditedNameValid) {
       return;
     }
@@ -97,7 +97,12 @@ export const TreeNode = ({
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const element = (hovered: boolean) => (
-    <Stack justifyContent="space-between" direction={"row"} width={"100%"}>
+    <Stack
+      justifyContent="space-between"
+      alignItems="stretch"
+      direction={"row"}
+      width={"100%"}
+    >
       {isEditing ? (
         <NameInput
           value={editFilenameValue}
@@ -107,7 +112,20 @@ export const TreeNode = ({
           error={!isEditedNameValid}
         />
       ) : (
-        <span>{pathSegment}</span>
+        <span
+          style={{ width: "100%" }}
+          onClick={() => {
+            return isLeaf(pathToSegment)
+              ? setActiveFile(fileNode)
+              : setExpandedKeys((keys) =>
+                  keys.includes(pathToSegment)
+                    ? keys.filter((path) => path !== pathToSegment)
+                    : [...keys, pathToSegment]
+                );
+          }}
+        >
+          {pathSegment}
+        </span>
       )}
       {hovered && (
         <NodeEditor

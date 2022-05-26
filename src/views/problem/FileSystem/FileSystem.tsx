@@ -5,11 +5,18 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import type { TreeProps } from "rc-tree";
-import Tree from "rc-tree";
+import Tree, { TreeProps } from "rc-tree";
 
 import "rc-tree/assets/index.css";
-import { Folder, FolderOpen } from "mdi-material-ui";
+import {
+  FileDocument,
+  Folder,
+  FolderOpen,
+  LanguageCss3,
+  LanguageHtml5,
+  LanguageJavascript,
+  LanguageTypescript,
+} from "mdi-material-ui";
 import pathListToTree from "./utils/pathListToTree";
 import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -74,13 +81,21 @@ declare module "rc-tree/lib/interface" {
     pathSegment: string;
   }
 }
+declare module "rc-tree/lib" {
+  interface TreeNodeProps {
+    fullPath: string;
+    pathSegment: string;
+  }
+}
 
-const FileSystem2 = ({
+const FileSystem = ({
   tree,
   setTree,
+  setActiveFile,
 }: {
   tree: FileNode[];
   setTree: Dispatch<SetStateAction<FileNode[]>>;
+  setActiveFile: (value: FileNode) => void;
 }) => {
   const theme = useTheme();
 
@@ -151,8 +166,15 @@ const FileSystem2 = ({
   );
 
   const treeifiedPaths: DataNode[] = useMemo(() => {
-    return pathListToTree({ tree, updateFileName, deleteFile, addFile });
-  }, [tree, updateFileName, deleteFile, addFile]);
+    return pathListToTree({
+      tree,
+      updateFileName,
+      deleteFile,
+      addFile,
+      setActiveFile,
+      setExpandedKeys,
+    });
+  }, [tree, updateFileName, deleteFile, addFile, setActiveFile]);
 
   const onDragEnter: TreeProps["onDragEnter"] = ({ expandedKeys }) => {
     setExpandedKeys(expandedKeys);
@@ -243,12 +265,29 @@ const FileSystem2 = ({
   };
 
   const switcherIcon = (obj: TreeNodeProps) => {
+    console.log("obj", obj);
     if (!obj.isLeaf) {
       return obj.expanded ? (
         <FolderOpen fontSize="small" color={"primary"} />
       ) : (
         <Folder fontSize="small" color={"primary"} />
       );
+    }
+    switch (Path.extname(obj.pathSegment)) {
+      case ".ts":
+        return (
+          <LanguageTypescript fontSize="small" style={{ fill: "#2f73bf" }} />
+        );
+      case ".js":
+        return (
+          <LanguageJavascript fontSize="small" style={{ fill: "#ebd41b" }} />
+        );
+      case ".css":
+        return <LanguageCss3 fontSize="small" style={{ fill: "#2549d9" }} />;
+      case ".html":
+        return <LanguageHtml5 fontSize="small" style={{ fill: "#ca5233" }} />;
+      default:
+        return <FileDocument fontSize="small" color={"disabled"} />;
     }
   };
 
@@ -279,7 +318,7 @@ const FileSystem2 = ({
     </Box>
   );
 };
-export default FileSystem2;
+export default FileSystem;
 
 /**
  * If dropNode isLeaf, return path to parent dir otherwise return dropNode path
