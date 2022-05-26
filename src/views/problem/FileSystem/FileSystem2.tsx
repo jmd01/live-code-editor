@@ -92,18 +92,6 @@ const FileSystem2 = ({
       setTree((tree) =>
         tree.map((file) => {
           const regex = new RegExp(`^${oldFilePath}`);
-          if (file.path.startsWith(oldFilePath)) {
-            console.log(
-              "file.path",
-              file.path,
-              "oldFilePath",
-              oldFilePath,
-              "newFilePath",
-              newFilePath,
-              "path",
-              file.path.replace(regex, newFilePath)
-            );
-          }
           return file.path.startsWith(oldFilePath)
             ? {
                 ...file,
@@ -141,7 +129,7 @@ const FileSystem2 = ({
         );
 
         const newNode: FileNode = {
-          id: "temp",
+          id: `temp-${path}/${newFileName}`, // TODO update this on save
           path: `${path}/${newFileName}`,
           isEmptyDir: isDir,
           contents: "",
@@ -166,30 +154,16 @@ const FileSystem2 = ({
     return pathListToTree({ tree, updateFileName, deleteFile, addFile });
   }, [tree, updateFileName, deleteFile, addFile]);
 
-  console.log("tree", tree, "treeifiedPaths", treeifiedPaths);
-
   const onDragEnter: TreeProps["onDragEnter"] = ({ expandedKeys }) => {
     setExpandedKeys(expandedKeys);
   };
 
   const onDrop: TreeProps["onDrop"] = (info) => {
-    console.log("drop", info);
-
     const dropNode = info.node;
     const dropPath = info.node.fullPath;
-    const dropPathIsDir = !isLeaf(dropPath);
 
     const dragNode = info.dragNode;
     const dragPath = info.dragNode.fullPath;
-    const dragPathIsDir = !isLeaf(dragPath);
-
-    // console.log("dragPath", dragPath, "dropPath", dropPath);
-    // console.log(
-    //   "Path.dirname(dragPath)",
-    //   Path.dirname(dragPath),
-    //   "getDirectory(dropPath)",
-    //   getDirectory(dropPath)
-    // );
 
     // Dropping on or into it's own directory is a noop
     if (Path.dirname(dragPath) === getDirectory(dropPath)) {
@@ -201,22 +175,13 @@ const FileSystem2 = ({
     setExpandedKeys((keys) => (keys.includes(path) ? keys : [...keys, path]));
 
     const dragPathWithDelimiter = isLeaf(dragPath) ? dragPath : `${dragPath}/`;
-    setTree((tree) => {
-      // console.log(tree);
+    setTree((tree) =>
+      tree.reduce<FileNode[]>((acc, file) => {
+        const filePathWithDelimiter = isLeaf(file.path)
+          ? file.path
+          : `${file.path}/`;
 
-      return tree.reduce<FileNode[]>((acc, file) => {
-        if (file.path.startsWith(dragPathWithDelimiter)) {
-          console.log(
-            "dragPath",
-            dragPath,
-            "file.path",
-            file.path,
-            "dropPath",
-            dropPath
-          );
-
-          // const regex = new RegExp(`${dragNode.pathSegment}.*$`);
-          // const updatedDropPath = file.path.match(regex)?.[0] ?? "";
+        if (filePathWithDelimiter.startsWith(dragPathWithDelimiter)) {
           const filepathBelowDragPath = file.path.split(dragPath)?.[1] ?? "";
           const updatedDropPath = `${dragNode.pathSegment}${filepathBelowDragPath}`;
 
@@ -224,17 +189,12 @@ const FileSystem2 = ({
             dropNode
           )}/${updatedDropPath}`;
 
-          console.log(
-            "updatedDropPath",
-            updatedDropPath,
-            "updatedPath",
-            updatedPath
-          );
+          let updatedTree: FileNode[];
 
           // If the new file path already exists
           if (tree.some(({ path }) => path === updatedPath)) {
             // const uniquePath = getUniquePath(updatedPath, tree);
-            return [
+            updatedTree = [
               ...acc,
               {
                 ...file,
@@ -242,7 +202,7 @@ const FileSystem2 = ({
               },
             ];
           } else {
-            return [
+            updatedTree = [
               ...acc,
               {
                 ...file,
@@ -250,14 +210,34 @@ const FileSystem2 = ({
               },
             ];
           }
+
+          // If the parent dir is now empty it will disappear from the tree, so add an emptyDir
+          const dragPathParent = Path.dirname(dragPath);
+
+          if (
+            dragPathParent !== "." && // Ignore root dirs
+            !updatedTree.some(({ path }) => path.startsWith(dragPathParent))
+          ) {
+            console.log();
+            updatedTree = [
+              ...updatedTree,
+              {
+                id: `temp-${dragPathParent}`, // TODO update this on save
+                path: dragPathParent,
+                isEmptyDir: true,
+                contents: "",
+              },
+            ];
+          }
+
+          return updatedTree;
         }
         return [...acc, file];
-      }, []);
-    });
+      }, [])
+    );
   };
 
   const onExpand: TreeProps["onExpand"] = (expandedKeys) => {
-    // console.log("onExpand", expandedKeys);
     setExpandedKeys(expandedKeys);
     setAutoExpandParent(false);
   };
@@ -301,32 +281,12 @@ const FileSystem2 = ({
 };
 export default FileSystem2;
 
+/**
+ * If dropNode isLeaf, return path to parent dir otherwise return dropNode path
+ */
 const getDropPathDirectory = (dropNode: EventDataNode): string => {
   const dropPath = dropNode.fullPath;
-
-  if (isLeaf(dropNode.pathSegment)) {
-    // console.log(
-    //   "isLeaf",
-    //   isLeaf(dropNode.pathSegment),
-    //   "pathSegment:",
-    //   dropNode.pathSegment,
-    //   "dropPath",
-    //   Path.dirname(dropPath)
-    // );
-    return Path.dirname(dropPath);
-    // const pathToParentDir = dropPath.match(/.*\//);
-    // return pathToParentDir ? pathToParentDir[0] : "";
-  }
-
-  // console.log(
-  //   "isLeaf",
-  //   isLeaf(dropNode.pathSegment),
-  //   "pathSegment:",
-  //   dropNode.pathSegment,
-  //   "dropPath:",
-  //   dropPath
-  // );
-  return dropPath;
+  return isLeaf(dropNode.pathSegment) ? Path.dirname(dropPath) : dropPath;
 };
 
 /**
