@@ -1,10 +1,20 @@
 // ** MUI Imports
 import { Stack } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import Editor from "../../../views/problem/Editor";
 import Preview from "../../../views/problem/Preview";
 import FileSystem from "../../../views/problem/FileSystem/FileSystem";
 import { useState } from "react";
+
+import dynamic from "next/dynamic";
+import { useTheme } from "@mui/material/styles";
+
+const MonacoEditor = dynamic(
+  () => import("../../../views/problem/MonacoEditor"),
+  {
+    ssr: false,
+    loading: () => <div>loading...</div>,
+  }
+);
 
 const problemData = {
   id: "1",
@@ -25,6 +35,7 @@ export type FileNode = {
 
 const Problem = ({ id }: { id: string }) => {
   console.log(id);
+  const theme = useTheme();
 
   const [tree, setTree] = useState<FileNode[]>([
     {
@@ -233,14 +244,24 @@ const Problem = ({ id }: { id: string }) => {
       {/*  <Typography variant="body2">{problemData.description}</Typography>*/}
       {/*</Grid>*/}
       <Grid item xs={12} height={"100%"}>
-        <Stack direction="row" height={"100%"}>
+        <Stack
+          direction="row"
+          height={"100%"}
+          sx={{
+            borderWidth: 1,
+            borderColor: `rgba(${theme.palette.customColors.main}, 0.12)`,
+            borderStyle: "solid",
+          }}
+        >
           <FileSystem
             tree={tree}
             setTree={setTree}
             setActiveFile={setActiveFile}
           />
-          <Editor file={activeFile} />
-          <Preview />
+          <Stack direction="row" height={"100%"} flexGrow={1}>
+            <MonacoEditor file={activeFile} />
+            <Preview />
+          </Stack>
         </Stack>
       </Grid>
     </Grid>

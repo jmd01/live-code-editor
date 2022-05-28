@@ -265,7 +265,6 @@ const FileSystem = ({
   };
 
   const switcherIcon = (obj: TreeNodeProps) => {
-    console.log("obj", obj);
     if (!obj.isLeaf) {
       return obj.expanded ? (
         <FolderOpen fontSize="small" color={"primary"} />
@@ -296,9 +295,8 @@ const FileSystem = ({
       sx={{
         height: "100%",
         width: "280px",
-        borderWidth: 1,
-        borderColor: `rgba(${theme.palette.customColors.main}, 0.12)`,
-        borderStyle: "solid",
+        borderRight: `1px solid rgba(${theme.palette.customColors.main}, 0.12)`,
+        flexShrink: 0,
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: STYLE }} />
