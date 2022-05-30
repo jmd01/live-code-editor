@@ -18,7 +18,7 @@ import {
   LanguageTypescript,
 } from "mdi-material-ui";
 import pathListToTree from "./utils/pathListToTree";
-import { Box, Typography } from "@mui/material";
+import { Box, PaletteMode, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import * as Path from "path-browserify";
 import type { DataNode, Key } from "rc-tree/lib/interface";
@@ -26,48 +26,7 @@ import type { TreeNodeProps } from "rc-tree/lib";
 import type { EventDataNode } from "rc-tree/es/interface";
 import { FileNode } from "../../../pages/problems/problem";
 import { getDirectory, isLeaf } from "./utils/pathFns";
-
-const STYLE = `
-  .rc-tree-child-tree {
-    display: block;
-  }
-
-  .rc-tree .rc-tree-treenode {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .rc-tree .rc-tree-treenode span.rc-tree-switcher {
-    width: 20px;
-    height: 20px;
-  }
-  .rc-tree .rc-tree-treenode span.rc-tree-switcher.rc-tree-switcher_open {
-    background: none;
-  }
-  .rc-tree .rc-tree-treenode span.rc-tree-switcher.rc-tree-switcher_close {
-    background: none;
-  }
-  .rc-tree .rc-tree-treenode span.rc-tree-iconEle {
-    width: 0;
-    background: none;
-  }
-  .rc-tree-treenode-selected {
-    background-color: #DADADAFF;
-  }
-  .rc-tree-node-selected {
-    background: none;
-    opacity: 1;
-    box-shadow: none;
-  }
-  .rc-tree .rc-tree-treenode .rc-tree-node-content-wrapper {
-    width: 100%;
-  }
-  .rc-tree-title {
-    width: 100%;
-    height: 24px;
-    vertical-align: middle
-  }
-`;
+import { useSettings } from "../../../@core/hooks/useSettings";
 
 declare module "rc-tree/es/interface" {
   interface EventDataNode {
@@ -98,6 +57,7 @@ const FileSystem = ({
   setActiveFile: (value: FileNode) => void;
 }) => {
   const theme = useTheme();
+  const { settings } = useSettings();
 
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const [expandedKeys, setExpandedKeys] = useState<Key[]>([]);
@@ -299,7 +259,7 @@ const FileSystem = ({
         flexShrink: 0,
       }}
     >
-      <style dangerouslySetInnerHTML={{ __html: STYLE }} />
+      <style dangerouslySetInnerHTML={{ __html: getStyles(settings.mode) }} />
 
       <Typography variant="h6">Files</Typography>
 
@@ -340,3 +300,47 @@ const getUpdatedPath = (path: string) => {
 // ): string => {
 //   const filename = Path.basename()updatedPath;
 // };
+
+const getStyles = (mode: PaletteMode) => {
+  return `
+  .rc-tree-child-tree {
+    display: block;
+  }
+
+  .rc-tree .rc-tree-treenode {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .rc-tree .rc-tree-treenode span.rc-tree-switcher {
+    width: 20px;
+    height: 20px;
+  }
+  .rc-tree .rc-tree-treenode span.rc-tree-switcher.rc-tree-switcher_open {
+    background: none;
+  }
+  .rc-tree .rc-tree-treenode span.rc-tree-switcher.rc-tree-switcher_close {
+    background: none;
+  }
+  .rc-tree .rc-tree-treenode span.rc-tree-iconEle {
+    width: 0;
+    background: none;
+  }
+  .rc-tree-treenode-selected {
+    background-color: ${mode === "light" ? "#DADADAFF" : "#3E246DFF"};
+  }
+  .rc-tree-node-selected {
+    background: none;
+    opacity: 1;
+    box-shadow: none;
+  }
+  .rc-tree .rc-tree-treenode .rc-tree-node-content-wrapper {
+    width: 100%;
+  }
+  .rc-tree-title {
+    width: 100%;
+    height: 24px;
+    vertical-align: middle
+  }
+`;
+};
