@@ -26,9 +26,15 @@ export const simpleTsTreeNoExtension = [
     id: "5",
     path: "index.ts",
     contents:
-      "import { foo, bar } from './lib/index'\n\nconsole.log(foo());\n\nconsole.log(bar());",
+      "import { foo, bar } from './lib/index'\n\nconsole.log(foo());\n\nconsole.log(bar());\n\nconst fooz: Fooz",
+  },
+  {
+    id: "6",
+    path: "lib/declaration.d.ts",
+    contents: "declare type Fooz = string | number[];\n\n",
   },
 ];
+
 export const simpleTsTree = [
   {
     id: "1",
