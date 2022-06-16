@@ -1,3 +1,45 @@
+export const tree = [
+  {
+    id: "1",
+    path: "util/encode.ts",
+    contents:
+      "export function encode(data: string): Uint8Array {\n\n return new Uint8Array(1)\n}",
+  },
+  {
+    id: "2",
+    path: "lib/foo.ts",
+    contents:
+      "import { encode } from '../util/encode.ts'\n\nexport function foo() {\n\n  return encode('foo')\n}",
+  },
+  {
+    id: "3",
+    path: "lib/bar.ts",
+    contents:
+      "import { encode } from '../util/encode.ts'\n\nexport function bar() {\n\n  return encode('bar')\n}",
+  },
+  {
+    id: "4",
+    path: "lib/index.ts",
+    contents: "export * from './foo.ts'\n\nexport * from './bar.ts'",
+  },
+  {
+    id: "5",
+    path: "index.tsx",
+    contents:
+      "import React from 'react';\nimport ReactDOM from 'react-dom'\nimport App from \"./App.tsx\"\n\nimport { foo, bar } from './lib/index.ts'\n\nconsole.log(foo());\nconsole.log(bar());\n\nReactDOM.render(<App />, document.querySelector('#root')); \n",
+  },
+  {
+    id: "5",
+    path: "App.tsx",
+    contents:
+      "import React from 'react';\n\nconst App = () => {\n  return (\n    <div style={{ fontFamily: 'sans-serif', textAlign: 'center' }}>\n      <h1>Hello jsx book!</h1>\n      <h2>Start editing to create something magic!</h2>\n      <p>By the way, you can import (almost) ANY npm package using our magic bundler</p>\n    </div>\n  );\n};\nexport default App      \n",
+  },
+  {
+    id: "7",
+    path: "lib/declaration.d.ts",
+    contents: "declare type Fooz = string | number[];\n\n",
+  },
+];
 export const simpleTsTreeNoExtension = [
   {
     id: "1",
@@ -26,7 +68,7 @@ export const simpleTsTreeNoExtension = [
     id: "5",
     path: "index.ts",
     contents:
-      "import { foo, bar } from './lib/index'\n\nconsole.log(foo());\n\nconsole.log(bar());\n\nconst fooz: Fooz",
+      "import { foo, bar } from './lib/index'\n\nimport * as React from 'react'\n\nconsole.log(foo());\n\nconsole.log(bar());\n\nconst fooz: Fooz",
   },
   {
     id: "6",

@@ -1,11 +1,16 @@
-import Editor, { EditorProps, Monaco, useMonaco } from "@monaco-editor/react";
+import Editor, {
+  EditorProps,
+  Monaco,
+  OnMount,
+  useMonaco,
+} from "@monaco-editor/react";
 import * as Path from "path-browserify";
 import React, { useEffect, useState } from "react";
 import { editor } from "monaco-editor";
 import { FileNode } from "src/pages/problems/problem";
 import { useTheme } from "@mui/material/styles";
 import { useSettings } from "../../../@core/hooks/useSettings";
-import { Box } from "@mui/material";
+import { AutoTypings, LocalStorageCache } from "monaco-editor-auto-typings";
 
 type MonacoEditorProps = {
   file: FileNode | undefined;
@@ -33,17 +38,17 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
     setPath(file?.path);
   }, [file]);
 
-  useEffect(() => {
-    monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
-    monaco?.languages.typescript.typescriptDefaults.setCompilerOptions({
-      allowSyntheticDefaultImports: true,
-      jsx: monaco?.languages.typescript.JsxEmit.React,
-      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-      allowNonTsExtensions: true,
-      target: monaco.languages.typescript.ScriptTarget.ES2020,
-      // include: ["**/*"],
-    });
-  }, [monaco]);
+  // useEffect(() => {
+  //   monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+  //   monaco?.languages.typescript.typescriptDefaults.setCompilerOptions({
+  //     allowSyntheticDefaultImports: true,
+  //     jsx: monaco?.languages.typescript.JsxEmit.React,
+  //     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+  //     allowNonTsExtensions: true,
+  //     target: monaco.languages.typescript.ScriptTarget.ES2020,
+  //     // include: ["**/*"],
+  //   });
+  // }, [monaco]);
 
   useEffect(() => {
     if (monaco) {
@@ -71,6 +76,37 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
     }
   }, [monaco, settings.mode]);
 
+  // useEffect(() => {
+  //   // Initialize auto typing on monaco editor. Imports will now automatically be typed!
+  //   const autoTypings = AutoTypings.create(monaco, {
+  //     sourceCache: new LocalStorageCache(), // Cache loaded sources in localStorage. May be omitted
+  //     // Other options...
+  //   });
+  // }, []);
+
+  const handleEditorMount: OnMount = (monacoEditor, monaco) => {
+    monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.ES2020,
+      allowNonTsExtensions: true,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      // module: monaco.languages.typescript.ModuleKind.CommonJS,
+      noEmit: true,
+      typeRoots: ["node_modules/@types"],
+    });
+
+    // monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+    //   noSemanticValidation: false,
+    //   noSyntaxValidation: true,
+    // })
+
+    // const autoTypings = AutoTypings.create(monacoEditor, {
+    //   sourceCache: new LocalStorageCache(), // Cache loaded sources in localStorage. May be omitted
+    //   monaco: monaco,
+    // });
+  };
+
   return (
     <Editor
       height="100%"
@@ -92,6 +128,7 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
         contextmenu: false,
       }}
       theme={editorTheme}
+      onMount={handleEditorMount}
     />
   );
 };

@@ -57,6 +57,7 @@
     "clsx": "1.1.1",
     "mdi-material-ui": "7.1.0",
     "monaco-editor": "^0.33.0",
+    "monaco-editor-auto-typings": "^0.4.0",
     "next": "12.0.4",
     "nprogress": "0.2.0",
     "path-browserify": "^1.0.1",
@@ -68,7 +69,10 @@
     "react-perfect-scrollbar": "1.5.8",
     "react-popper": "2.2.5",
     "react-use": "^17.3.2",
-    "ts-pattern": "^4.0.2"
+    "ts-pattern": "^4.0.2",
+    "axios": "^0.21.1",
+    "esbuild-wasm": "0.14.43",
+    "localforage": "^1.9.0"
   },
   "devDependencies": {
     "@types/node": "16.11.11",

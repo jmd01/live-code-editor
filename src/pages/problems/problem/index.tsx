@@ -1,15 +1,20 @@
 // ** MUI Imports
 import { Box, Stack } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import Preview from "../../../views/problem/Preview";
-import FileSystem from "../../../views/problem/FileSystem/FileSystem";
-import { useEffect, useState } from "react";
+import { Preview } from "../../../views/problem/Preview";
+import { FileSystem } from "../../../views/problem/FileSystem";
+import React, { useEffect, useState } from "react";
 
 import dynamic from "next/dynamic";
 import { useTheme } from "@mui/material/styles";
 import * as testingFileTrees from "./testingFileTrees";
 import { useMonaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
+
+const withNoSSR = (Component: React.FunctionComponent) =>
+  dynamic(() => Promise.resolve(Component), { ssr: false });
+
+// export default withNoSSR;
 
 const MonacoEditor = dynamic(
   () => import("../../../views/problem/MonacoEditor"),
@@ -40,9 +45,7 @@ const Problem = ({ id }: { id: string }) => {
   console.log(id);
   const theme = useTheme();
 
-  const [tree, setTree] = useState<FileNode[]>(
-    testingFileTrees.simpleTsTreeNoExtension
-  );
+  const [tree, setTree] = useState<FileNode[]>(testingFileTrees.tree);
   const [activeFile, setActiveFile] = useState<FileNode>(
     testingFileTrees.simpleTsTreeNoExtension[4]
   );
@@ -88,14 +91,14 @@ const Problem = ({ id }: { id: string }) => {
                 <MonacoEditor file={activeFile} tree={tree} monaco={monaco} />
               </Box>
             )}
-            <Preview />
+            <Preview tree={tree} />
           </Stack>
         </Stack>
       </Grid>
     </Grid>
   );
 };
-export default Problem;
+export default withNoSSR(Problem);
 
 const vsTheme: editor.IStandaloneThemeData = {
   base: "vs",
