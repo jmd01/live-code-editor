@@ -10,6 +10,7 @@ import { useTheme } from "@mui/material/styles";
 import * as testingFileTrees from "./testingFileTrees";
 import { useMonaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
+import { useLocalStorage } from "react-use";
 
 const withNoSSR = (Component: React.FunctionComponent) =>
   dynamic(() => Promise.resolve(Component), { ssr: false });
@@ -41,14 +42,21 @@ export type FileNode = {
   isEmptyDir?: boolean;
 };
 
-const Problem = ({ id }: { id: string }) => {
-  console.log(id);
+const testingTree = testingFileTrees.tree;
+const Problem = ({ id, userId }: { id: string; userId: string }) => {
   const theme = useTheme();
 
-  const [tree, setTree] = useState<FileNode[]>(testingFileTrees.tree);
-  const [activeFile, setActiveFile] = useState<FileNode>(
-    testingFileTrees.simpleTsTreeNoExtension[4]
+  const [tree, setTree] = useLocalStorage<FileNode[]>(
+    `user:${userId}|problem:${id}`,
+    testingTree ?? []
   );
+  const [activeFile, setActiveFile] = useState<FileNode | undefined>(testingFileTrees.tree[5]);
+  // const [editorValue, setEditorValue] = useState("");
+
+  // useEffect(() => {
+  //   setEditorValue(activeFile?.contents ?? "");
+  // }, [activeFile]);
+
   const monaco = useMonaco();
 
   useEffect(() => {
@@ -56,6 +64,31 @@ const Problem = ({ id }: { id: string }) => {
     monaco?.editor.defineTheme("vs-modified", vsTheme);
     monaco?.editor.defineTheme("vs-dark-modified", vsDarkTheme);
   }, [monaco]);
+
+  const onSelectFileSystemFile = (fileNode: FileNode) => {
+    if (activeFile) {
+      const updatedTree = (tree ?? [])?.map((fileNode) => {
+        return fileNode.id === activeFile?.id
+          ? {
+              ...fileNode,
+              contents: editorValue ?? "",
+            }
+          : fileNode;
+      });
+      console.log("tree", tree);
+      console.log("activeFile", activeFile);
+      console.log("updatedTree", updatedTree);
+  
+      setTree(updatedTree);
+  
+      // TODO store to BE
+      // saveFile();
+  
+    }
+    setActiveFile(fileNode);
+  };
+
+  const [editorValue, setEditorValue] = useState(activeFile?.contents);
 
   return (
     <Grid container spacing={6} height={"100%"}>
@@ -74,9 +107,9 @@ const Problem = ({ id }: { id: string }) => {
           }}
         >
           <FileSystem
-            tree={tree}
+            tree={tree ?? []}
             setTree={setTree}
-            setActiveFile={setActiveFile}
+            setActiveFile={onSelectFileSystemFile}
           />
 
           <Stack direction="row" height={"100%"} flexGrow={1}>
@@ -88,10 +121,22 @@ const Problem = ({ id }: { id: string }) => {
                   width: "50%",
                 }}
               >
-                <MonacoEditor file={activeFile} tree={tree} monaco={monaco} />
+                <MonacoEditor
+                  tree={tree ?? []}
+                  monaco={monaco}
+                  editorValue={editorValue}
+                  setEditorValue={setEditorValue}
+                  activeFile={activeFile}
+                  setActiveFile={setActiveFile}
+
+                />
               </Box>
             )}
-            <Preview tree={tree} />
+            <Preview
+              tree={tree ?? []}
+              editorValue={editorValue}
+              activeFile={activeFile}
+            />
           </Stack>
         </Stack>
       </Grid>

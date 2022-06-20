@@ -23,37 +23,23 @@ import { useTheme } from "@mui/material/styles";
 import * as Path from "path-browserify";
 import type { DataNode, Key } from "rc-tree/lib/interface";
 import type { TreeNodeProps } from "rc-tree/lib";
-import type { EventDataNode } from "rc-tree/es/interface";
+import type { BasicDataNode, EventDataNode } from "rc-tree/es/interface";
 import { FileNode } from "../../../pages/problems/problem";
 import { getDirectory, isLeaf } from "./utils/pathFns";
 import { useSettings } from "../../../@core/hooks/useSettings";
 
-declare module "rc-tree/es/interface" {
-  interface EventDataNode {
-    fullPath: string;
-    pathSegment: string;
-  }
-}
-declare module "rc-tree/lib/interface" {
-  interface DataNode {
-    fullPath: string;
-    pathSegment: string;
-  }
-}
-declare module "rc-tree/lib" {
-  interface TreeNodeProps {
-    fullPath: string;
-    pathSegment: string;
-  }
+interface TreeDataType extends BasicDataNode {
+  fullPath: string;
+  pathSegment: string;
 }
 
 const FileSystem = ({
-  tree,
+  tree = [],
   setTree,
   setActiveFile,
 }: {
   tree: FileNode[];
-  setTree: Dispatch<SetStateAction<FileNode[]>>;
+  setTree: Dispatch<SetStateAction<FileNode[] | undefined>>;
   setActiveFile: (value: FileNode) => void;
 }) => {
   const theme = useTheme();
@@ -64,7 +50,7 @@ const FileSystem = ({
 
   const updateFileName = useCallback(
     (oldFilePath: string, newFilePath: string) => {
-      setTree((tree) =>
+      setTree((tree = []) =>
         tree.map((file) => {
           const regex = new RegExp(`^${oldFilePath}`);
           return file.path.startsWith(oldFilePath)
@@ -81,7 +67,7 @@ const FileSystem = ({
 
   const deleteFile = useCallback(
     (filePath: string) => {
-      setTree((tree) =>
+      setTree((tree = []) =>
         tree.reduce<FileNode[]>(
           (acc, file) =>
             file.path.startsWith(filePath) ? acc : [...acc, file],
@@ -94,7 +80,7 @@ const FileSystem = ({
 
   const addFile = useCallback(
     (pathToSegment: string, newFileName: string, isDir?: boolean) => {
-      setTree((tree) => {
+      setTree((tree = []) => {
         const path = isLeaf(pathToSegment)
           ? getDirectory(pathToSegment)
           : pathToSegment;
@@ -125,7 +111,7 @@ const FileSystem = ({
     [setTree]
   );
 
-  const treeifiedPaths: DataNode[] = useMemo(() => {
+  const treeifiedPaths: TreeDataType[] = useMemo(() => {
     return pathListToTree({
       tree,
       updateFileName,
@@ -140,7 +126,7 @@ const FileSystem = ({
     setExpandedKeys(expandedKeys);
   };
 
-  const onDrop: TreeProps["onDrop"] = (info) => {
+  const onDrop: TreeProps<TreeDataType>["onDrop"] = (info) => {
     const dropNode = info.node;
     const dropPath = info.node.fullPath;
 
@@ -157,7 +143,7 @@ const FileSystem = ({
     setExpandedKeys((keys) => (keys.includes(path) ? keys : [...keys, path]));
 
     const dragPathWithDelimiter = isLeaf(dragPath) ? dragPath : `${dragPath}/`;
-    setTree((tree) =>
+    setTree((tree = []) =>
       tree.reduce<FileNode[]>((acc, file) => {
         const filePathWithDelimiter = isLeaf(file.path)
           ? file.path
@@ -224,7 +210,7 @@ const FileSystem = ({
     setAutoExpandParent(false);
   };
 
-  const switcherIcon = (obj: TreeNodeProps) => {
+  const switcherIcon = (obj: TreeNodeProps<TreeDataType>) => {
     if (!obj.isLeaf) {
       return obj.expanded ? (
         <FolderOpen fontSize="small" color={"primary"} />
@@ -232,7 +218,8 @@ const FileSystem = ({
         <Folder fontSize="small" color={"primary"} />
       );
     }
-    switch (Path.extname(obj.pathSegment)) {
+    const extName = obj.data ? Path.extname(obj.data.pathSegment) : "";
+    switch (extName) {
       case ".ts":
         return (
           <LanguageTypescript fontSize="small" style={{ fill: "#2f73bf" }} />
@@ -263,7 +250,7 @@ const FileSystem = ({
 
       <Typography variant="h6">Files</Typography>
 
-      <Tree
+      <Tree<TreeDataType>
         expandedKeys={expandedKeys}
         onExpand={onExpand}
         autoExpandParent={autoExpandParent}
@@ -281,7 +268,9 @@ export default FileSystem;
 /**
  * If dropNode isLeaf, return path to parent dir otherwise return dropNode path
  */
-const getDropPathDirectory = (dropNode: EventDataNode): string => {
+const getDropPathDirectory = (
+  dropNode: EventDataNode<TreeDataType>
+): string => {
   const dropPath = dropNode.fullPath;
   return isLeaf(dropNode.pathSegment) ? Path.dirname(dropPath) : dropPath;
 };

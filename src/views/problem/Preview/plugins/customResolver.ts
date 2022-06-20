@@ -16,7 +16,7 @@ export function customResolver(): Plugin {
             .href,
         };
 
-        console.log("onResolve: paths within a dep", args.path, ret);
+        // console.log("onResolve: paths within a dep", args.path, ret);
         return ret
       });
 
@@ -27,7 +27,7 @@ export function customResolver(): Plugin {
           path: `https://unpkg.com/${args.path}`,
         };
 
-        console.log("onResolve: main file of a dep", args, ret);
+        // console.log("onResolve: main file of a dep", args, ret);
         return ret
       });
 
@@ -38,13 +38,13 @@ export function customResolver(): Plugin {
           path: `https://unpkg.com/${args.path}`,
         };
 
-        console.log("onResolve: main file of a dep", args, ret);
+        // console.log("onResolve: main file of a dep", args, ret);
         return ret
       });
 
       // anything else - should only be virtual tree files
       build.onResolve({filter: /.*/}, (args) => {
-        console.log("onResolve: should only be virtual tree files", args);
+        // console.log("onResolve: should only be virtual tree files", args);
         if (args.kind === "entry-point") {
           return {namespace: "virtual", path: "/" + args.path};
         }

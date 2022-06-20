@@ -19,7 +19,7 @@ export const fetchPlugin = (tree: Record<string, string>) => {
         const cachedResult = await fileCache.getItem<esbuild.OnLoadResult>(
           args.path
         );
-        console.log("onLoad .* 1", args, cachedResult);
+        // console.log("onLoad .* 1", args, cachedResult);
 
         if (cachedResult) {
           return cachedResult;
@@ -50,7 +50,7 @@ export const fetchPlugin = (tree: Record<string, string>) => {
           };
 
           await fileCache.setItem(args.path, result);
-          console.log("onLoad css", args, result);
+          // console.log("onLoad css", args, result);
 
           return result;
         }
@@ -67,7 +67,7 @@ export const fetchPlugin = (tree: Record<string, string>) => {
         };
 
         await fileCache.setItem(args.path, result);
-        console.log("onLoad .* 2", args, result);
+        // console.log("onLoad .* 2", args, result);
 
         return result;
       });
@@ -77,12 +77,12 @@ export const fetchPlugin = (tree: Record<string, string>) => {
 
 export const tsxFetchPlugin = (tree: FileNode[]) => {
   const map = new Map(tree.map((file) => [`/${file.path}`, file.contents]));
-  console.log("map", map);
+  // console.log("map", map);
   return {
     name: "fetch-plugin",
     setup(build: esbuild.PluginBuild) {
       build.onLoad({ filter: /.*/, namespace: "virtual" }, (args) => {
-        console.log("onLoad", args.path);
+        // console.log("onLoad", args.path);
         if (!map.has(args.path)) {
           throw Error(`${args.path} not loadable`);
         }

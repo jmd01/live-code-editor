@@ -26,10 +26,10 @@ export const tree = [
     id: "5",
     path: "index.tsx",
     contents:
-      "import React from 'react';\nimport ReactDOM from 'react-dom'\nimport App from \"./App.tsx\"\n\nimport { foo, bar } from './lib/index.ts'\n\nconsole.log(foo());\nconsole.log(bar());\n\nReactDOM.render(<App />, document.querySelector('#root')); \n",
+      "import React from 'react';\nimport ReactDOM from 'react-dom'\nimport App from \"./App.tsx\"\n\nimport { foo, bar } from './lib/index.ts'\n\n//console.log(foo());\n//console.log(bar());\n\nReactDOM.render(<App />, document.querySelector('#root')); \n",
   },
   {
-    id: "5",
+    id: "6",
     path: "App.tsx",
     contents:
       "import React from 'react';\n\nconst App = () => {\n  return (\n    <div style={{ fontFamily: 'sans-serif', textAlign: 'center' }}>\n      <h1>Hello jsx book!</h1>\n      <h2>Start editing to create something magic!</h2>\n      <p>By the way, you can import (almost) ANY npm package using our magic bundler</p>\n    </div>\n  );\n};\nexport default App      \n",

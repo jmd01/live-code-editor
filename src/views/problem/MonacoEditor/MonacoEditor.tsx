@@ -5,25 +5,40 @@ import Editor, {
   useMonaco,
 } from "@monaco-editor/react";
 import * as Path from "path-browserify";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { editor } from "monaco-editor";
 import { FileNode } from "src/pages/problems/problem";
 import { useTheme } from "@mui/material/styles";
 import { useSettings } from "../../../@core/hooks/useSettings";
 import { AutoTypings, LocalStorageCache } from "monaco-editor-auto-typings";
 
+// export type DirtyFiles =
+//   | Record<FileNode["id"], FileNode["contents"]>
+//   | undefined;
+
 type MonacoEditorProps = {
-  file: FileNode | undefined;
   tree: FileNode[];
   monaco: Monaco;
+  setActiveFile: (file: FileNode | undefined) => void;
+  activeFile: FileNode | undefined;
+  setEditorValue: (editorValue: string | undefined) => void;
+  editorValue: string | undefined;
+  // setDirtyFiles: React.Dispatch<React.SetStateAction<DirtyFiles>>;
+  // dirtyFiles: DirtyFiles;
 };
-const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
+const MonacoEditor = ({
+  tree = [],
+  monaco,
+  activeFile,
+  setActiveFile,
+  editorValue,
+  setEditorValue
+}: MonacoEditorProps) => {
   const theme = useTheme();
   const { settings } = useSettings();
 
-  const [value, setValue] = useState(file?.contents);
-  const [language, setLanguage] = useState(getLanguage(file?.path));
-  const [path, setPath] = useState(file?.path);
+  const [language, setLanguage] = useState(getLanguage(activeFile?.path));
+  const [path, setPath] = useState(activeFile?.path);
   const [minimap, setMinimap] = useState(true);
   const [editorTheme, setEditorTheme] = useState(
     settings.mode === "light" ? "vs-modified" : "vs-dark-modified"
@@ -33,10 +48,9 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
     useState<editor.IEditorOptions["wordWrap"]>("off");
 
   useEffect(() => {
-    setValue(file?.contents);
-    setLanguage(getLanguage(file?.path));
-    setPath(file?.path);
-  }, [file]);
+    setLanguage(getLanguage(activeFile?.path));
+    setPath(activeFile?.path);
+  }, [activeFile]);
 
   // useEffect(() => {
   //   monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
@@ -52,9 +66,11 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
 
   useEffect(() => {
     if (monaco) {
+      console.log("useEffect setModel", tree, monaco.editor.getModels());
       tree.map(({ contents, path }) => {
         const uri = monaco.Uri.file(path);
         const model = monaco.editor.getModel(uri);
+        console.log("getModel", path, model);
         model
           ? model.setValue(contents)
           : monaco.editor.createModel(contents, undefined, uri);
@@ -63,6 +79,8 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
         //   uri.toString()
         // );
       });
+
+      console.log(monaco.editor.getModels());
     }
   }, [monaco, tree]);
 
@@ -85,6 +103,7 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
   // }, []);
 
   const handleEditorMount: OnMount = (monacoEditor, monaco) => {
+    console.log("handleEditorMount");
     monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
 
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -107,13 +126,26 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
     // });
   };
 
+  useEffect(() => {
+    setEditorValue(activeFile?.contents ?? "");
+  }, [activeFile]);
+
+  console.log("activeFile", activeFile);
   return (
     <Editor
       height="100%"
       defaultLanguage={language}
       language={language}
-      onChange={(value) => setValue(value)}
-      value={value}
+      onChange={(value) => {
+        console.log("onChange value", value, activeFile);
+        setEditorValue(value);
+        // activeFile &&
+        //   setActiveFile({
+        //     ...activeFile,
+        //     contents: value ?? "",
+        //   });
+      }}
+      value={editorValue}
       path={path}
       options={{
         padding: {
@@ -127,7 +159,8 @@ const MonacoEditor = ({ file, tree, monaco }: MonacoEditorProps) => {
         tabSize: 2,
         contextmenu: false,
       }}
-      theme={editorTheme}
+      // theme={editorTheme}
+      theme={"vs-dark"}
       onMount={handleEditorMount}
     />
   );
