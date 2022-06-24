@@ -7,10 +7,10 @@ import Editor, {
 import * as Path from "path-browserify";
 import React, { useEffect, useMemo, useState } from "react";
 import { editor } from "monaco-editor";
-import { FileNode } from "src/pages/problems/problem";
 import { useTheme } from "@mui/material/styles";
 import { useSettings } from "../../../@core/hooks/useSettings";
 import { AutoTypings, LocalStorageCache } from "monaco-editor-auto-typings";
+import { FileNode } from "src/pages/problems/problem/types";
 
 // export type DirtyFiles =
 //   | Record<FileNode["id"], FileNode["contents"]>
@@ -66,11 +66,11 @@ const MonacoEditor = ({
 
   useEffect(() => {
     if (monaco) {
-      console.log("useEffect setModel", tree, monaco.editor.getModels());
+      // console.log("useEffect setModel", tree, monaco.editor.getModels());
       tree.map(({ contents, path }) => {
         const uri = monaco.Uri.file(path);
         const model = monaco.editor.getModel(uri);
-        console.log("getModel", path, model);
+        // console.log("getModel", path, model);
         model
           ? model.setValue(contents)
           : monaco.editor.createModel(contents, undefined, uri);
@@ -80,17 +80,17 @@ const MonacoEditor = ({
         // );
       });
 
-      console.log(monaco.editor.getModels());
+      // console.log(monaco.editor.getModels());
     }
   }, [monaco, tree]);
 
   useEffect(() => {
     if (monaco) {
-      console.log("setTheme", settings.mode);
+      // console.log("setTheme", settings.mode);
       monaco.editor.setTheme(
         settings.mode === "light" ? "vs-modified" : "vs-dark-modified"
       );
-      console.log("monaco", monaco, "settings.mode", settings.mode);
+      // console.log("monaco", monaco, "settings.mode", settings.mode);
     }
   }, [monaco, settings.mode]);
 
@@ -103,7 +103,7 @@ const MonacoEditor = ({
   // }, []);
 
   const handleEditorMount: OnMount = (monacoEditor, monaco) => {
-    console.log("handleEditorMount");
+    // console.log("handleEditorMount");
     monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
 
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -130,14 +130,14 @@ const MonacoEditor = ({
     setEditorValue(activeFile?.contents ?? "");
   }, [activeFile]);
 
-  console.log("activeFile", activeFile);
+  // console.log("activeFile", activeFile);
   return (
     <Editor
       height="100%"
       defaultLanguage={language}
       language={language}
       onChange={(value) => {
-        console.log("onChange value", value, activeFile);
+        // console.log("onChange value", value, activeFile);
         setEditorValue(value);
         // activeFile &&
         //   setActiveFile({
@@ -159,8 +159,7 @@ const MonacoEditor = ({
         tabSize: 2,
         contextmenu: false,
       }}
-      // theme={editorTheme}
-      theme={"vs-dark"}
+      theme={editorTheme}
       onMount={handleEditorMount}
     />
   );

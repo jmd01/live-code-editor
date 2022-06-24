@@ -11,6 +11,7 @@ import * as testingFileTrees from "./testingFileTrees";
 import { useMonaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import { useLocalStorage } from "react-use";
+import { FileNode, DependenciesType, Dependency } from "./types";
 
 const withNoSSR = (Component: React.FunctionComponent) =>
   dynamic(() => Promise.resolve(Component), { ssr: false });
@@ -35,22 +36,21 @@ const problemData = {
   locked: false,
 };
 
-export type FileNode = {
-  id: string;
-  path: string;
-  contents: string;
-  isEmptyDir?: boolean;
-};
-
 const testingTree = testingFileTrees.tree;
 const Problem = ({ id, userId }: { id: string; userId: string }) => {
   const theme = useTheme();
 
   const [tree, setTree] = useLocalStorage<FileNode[]>(
-    `user:${userId}|problem:${id}`,
+    `user:${userId}|problem:${id}|tree`,
     testingTree ?? []
   );
-  const [activeFile, setActiveFile] = useState<FileNode | undefined>(testingFileTrees.tree[5]);
+  const [dependencies, setDependencies] = useLocalStorage<Dependency[]>(
+    `user:${userId}|problem:${id}|deps`,
+    [{ name: "react", version: "17.0.2" },{ name: "react-dom", version: "17.0.2" }]
+  );
+  const [activeFile, setActiveFile] = useState<FileNode | undefined>(
+    testingFileTrees.tree[5]
+  );
   // const [editorValue, setEditorValue] = useState("");
 
   // useEffect(() => {
@@ -78,12 +78,11 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
       console.log("tree", tree);
       console.log("activeFile", activeFile);
       console.log("updatedTree", updatedTree);
-  
+
       setTree(updatedTree);
-  
+
       // TODO store to BE
       // saveFile();
-  
     }
     setActiveFile(fileNode);
   };
@@ -110,6 +109,10 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
             tree={tree ?? []}
             setTree={setTree}
             setActiveFile={onSelectFileSystemFile}
+            dependencies={dependencies}
+            setDependencies={setDependencies}
+
+
           />
 
           <Stack direction="row" height={"100%"} flexGrow={1}>
@@ -128,7 +131,6 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
                   setEditorValue={setEditorValue}
                   activeFile={activeFile}
                   setActiveFile={setActiveFile}
-
                 />
               </Box>
             )}
@@ -136,6 +138,7 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
               tree={tree ?? []}
               editorValue={editorValue}
               activeFile={activeFile}
+              dependencies={dependencies}
             />
           </Stack>
         </Stack>

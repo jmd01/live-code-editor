@@ -3,7 +3,7 @@ import localForage from "localforage";
 import axios from "axios";
 import { Loader, OnLoadResult } from "esbuild-wasm";
 import * as Path from "path-browserify";
-import { FileNode } from "../../../../pages/problems/problem";
+import { FileNode } from "../../../../pages/problems/FileNode";
 
 const fileCache = localForage.createInstance({
   name: "filecache",

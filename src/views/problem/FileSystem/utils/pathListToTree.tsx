@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { TreeNode } from "../TreeNode";
-import { FileNode } from "../../../../pages/problems/problem";
+import { FileNode } from "../../../../pages/problems/FileNode";
 import { Key } from "rc-tree/lib/interface";
 
 export interface TreeNodeType {

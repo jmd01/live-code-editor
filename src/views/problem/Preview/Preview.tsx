@@ -2,17 +2,25 @@ import { Box } from "@mui/material";
 import * as esbuild from "esbuild-wasm";
 import { customResolver } from "./plugins/customResolver";
 import { fetchPlugin, tsxFetchPlugin } from "./plugins/fetch-plugin";
-import { FileNode } from "../../../pages/problems/problem";
 import { useCallback, useEffect, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { styled } from "@mui/material/styles";
+import { Dependency, FileNode } from "src/pages/problems/problem/types";
 
 type PreviewProps = {
   tree: FileNode[];
   editorValue: string | undefined;
   activeFile: FileNode | undefined;
+  dependencies: Dependency[] | undefined;
 };
-const Preview = ({ tree, activeFile, editorValue }: PreviewProps) => {
-  console.log("Preview", activeFile, editorValue);
+
+const Preview = ({
+  tree,
+  activeFile,
+  editorValue,
+  dependencies,
+}: PreviewProps) => {
+  // console.log("Preview", activeFile, editorValue);
   const initialisedEsbuild = useRef<Promise<void> | null>(null);
   useEffect(() => {
     if (!initialisedEsbuild.current) {
@@ -36,7 +44,7 @@ const Preview = ({ tree, activeFile, editorValue }: PreviewProps) => {
     await initialisedEsbuild.current;
     const result = await esbuild.build({
       entryPoints: ["index.tsx"],
-      plugins: [customResolver(), tsxFetchPlugin(treeWithLatestEditorValue)],
+      plugins: [customResolver(dependencies), tsxFetchPlugin(treeWithLatestEditorValue)],
       bundle: true,
       write: false,
     });
@@ -65,9 +73,15 @@ const Preview = ({ tree, activeFile, editorValue }: PreviewProps) => {
         width: "50%",
       }}
     >
-      <iframe id="iframe" src="http://localhost:4001/" />
+      <Iframe id="iframe" src="http://localhost:4001/" />
     </Box>
   );
 };
 
 export default Preview;
+
+const Iframe = styled("iframe")`
+  width: 100%;
+  height: 100%;
+  background-color: ${({ theme }) => theme.palette.common.white};
+`;

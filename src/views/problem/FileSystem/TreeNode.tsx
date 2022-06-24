@@ -12,7 +12,7 @@ import { styled } from "@mui/material/styles";
 import React, { ChangeEvent, FocusEvent, useState } from "react";
 import { useHover } from "react-use";
 import { isLeaf, isValidName } from "./utils/pathFns";
-import { FileNode } from "../../../pages/problems/problem";
+import { FileNode } from "../../../pages/problems/FileNode";
 import { Key } from "rc-tree/lib/interface";
 
 export type TreeNodeProps = {

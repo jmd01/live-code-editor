@@ -24,9 +24,10 @@ import * as Path from "path-browserify";
 import type { DataNode, Key } from "rc-tree/lib/interface";
 import type { TreeNodeProps } from "rc-tree/lib";
 import type { BasicDataNode, EventDataNode } from "rc-tree/es/interface";
-import { FileNode } from "../../../pages/problems/problem";
 import { getDirectory, isLeaf } from "./utils/pathFns";
 import { useSettings } from "../../../@core/hooks/useSettings";
+import { Dependencies } from "./Dependencies";
+import { Dependency, FileNode } from "src/pages/problems/problem/types";
 
 interface TreeDataType extends BasicDataNode {
   fullPath: string;
@@ -37,10 +38,14 @@ const FileSystem = ({
   tree = [],
   setTree,
   setActiveFile,
+  dependencies,
+  setDependencies,
 }: {
   tree: FileNode[];
   setTree: Dispatch<SetStateAction<FileNode[] | undefined>>;
   setActiveFile: (value: FileNode) => void;
+  dependencies: Dependency[];
+  setDependencies: Dispatch<SetStateAction<Dependency[]>>
 }) => {
   const theme = useTheme();
   const { settings } = useSettings();
@@ -246,20 +251,46 @@ const FileSystem = ({
         flexShrink: 0,
       }}
     >
-      <style dangerouslySetInnerHTML={{ __html: getStyles(settings.mode) }} />
+      <Box
+        sx={{
+          width: "100%",
+          borderBottom: `1px solid rgba(${theme.palette.customColors.main}, 0.12)`,
+          flexGrow: 1,
+          flexShrink: 0,
+          minHeight: "280px",
+        }}
+      >
+        <style dangerouslySetInnerHTML={{ __html: getStyles(settings.mode) }} />
 
-      <Typography variant="h6">Files</Typography>
+        <Typography variant="h6">Files</Typography>
 
-      <Tree<TreeDataType>
-        expandedKeys={expandedKeys}
-        onExpand={onExpand}
-        autoExpandParent={autoExpandParent}
-        draggable
-        onDragEnter={onDragEnter}
-        onDrop={onDrop}
-        treeData={treeifiedPaths}
-        switcherIcon={switcherIcon}
-      />
+        <Tree<TreeDataType>
+          expandedKeys={expandedKeys}
+          onExpand={onExpand}
+          autoExpandParent={autoExpandParent}
+          draggable
+          onDragEnter={onDragEnter}
+          onDrop={onDrop}
+          treeData={treeifiedPaths}
+          switcherIcon={switcherIcon}
+        />
+      </Box>
+      <Box
+        sx={{
+          width: "100%",
+          borderRight: `1px solid rgba(${theme.palette.customColors.main}, 0.12)`,
+          flexGrow: 1,
+          flexShrink: 1,
+          minHeight: "280px",
+          overflow: "hidden",
+          scroll: "auto"
+        }}
+      >
+        <Dependencies
+          dependencies={dependencies}
+          setDependencies={setDependencies}
+        />
+      </Box>
     </Box>
   );
 };
