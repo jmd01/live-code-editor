@@ -46,7 +46,7 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
   );
   const [dependencies, setDependencies] = useLocalStorage<Dependency[]>(
     `user:${userId}|problem:${id}|deps`,
-    [{ name: "react", version: "17.0.2" },{ name: "react-dom", version: "17.0.2" }]
+    [{ name: "react", version: "17.0.2" }]
   );
   const [activeFile, setActiveFile] = useState<FileNode | undefined>(
     testingFileTrees.tree[5]

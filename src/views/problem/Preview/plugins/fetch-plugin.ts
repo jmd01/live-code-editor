@@ -1,7 +1,7 @@
 import * as esbuild from "esbuild-wasm";
 import localForage from "localforage";
 import axios from "axios";
-import { Loader, OnLoadResult } from "esbuild-wasm";
+import { Loader, OnLoadArgs, OnLoadResult } from "esbuild-wasm";
 import * as Path from "path-browserify";
 import { FileNode } from "../../../../pages/problems/FileNode";
 
@@ -153,18 +153,19 @@ export const tsxFetchPlugin = (tree: FileNode[]) => {
       );
 
       // load javascript / jsx files
-      build.onLoad({ filter: /.*/, namespace: "unpkg" }, async (args: any) => {
+      build.onLoad({ filter: /.*/, namespace: "unpkg" }, async (args: OnLoadArgs) => {
         const { data, request } = await axios.get(args.path);
 
         const result = {
-          loader: "tsx",
+          loader: "tsx" as const,
           contents: data,
           resolveDir: new URL("./", request.responseURL).pathname,
         };
 
         await fileCache.setItem(args.path, result);
 
-        return result as OnLoadResult;
+        console.log("load javascript / jsx files", args, result)
+        return result;
       });
     },
   };

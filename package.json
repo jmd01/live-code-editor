@@ -73,6 +73,7 @@
     "react-perfect-scrollbar": "1.5.8",
     "react-popper": "2.2.5",
     "react-use": "^17.3.2",
+    "resolve": "^1.22.1",
     "semver": "^7.3.7",
     "ts-pattern": "^4.0.2",
     "use-debounce": "^8.0.1"
@@ -83,6 +84,7 @@
     "@types/path-browserify": "^1.0.0",
     "@types/react": "17.0.37",
     "@types/react-datepicker": "4.3.2",
+    "@types/resolve": "^1.20.2",
     "@types/semver": "^7.3.10",
     "@typescript-eslint/eslint-plugin": "5.6.0",
     "@typescript-eslint/parser": "5.11.0",
@@ -96,5 +98,9 @@
     "next-transpile-modules": "9.0.0",
     "prettier": "^2.6.2",
     "typescript": "4.5.2"
+  },
+  "browser": {
+    "fs": false,
+    "os": false
   }
 }

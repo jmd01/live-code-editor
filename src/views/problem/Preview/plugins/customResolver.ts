@@ -1,7 +1,9 @@
 import * as Path from "path-browserify";
-import { Plugin } from "esbuild-wasm";
+import { OnResolveArgs, Plugin } from "esbuild-wasm";
 import { Dependency } from "src/pages/problems/problem/types";
 import semver from "semver";
+
+type PkgJsonResolvedDeps = Record<string, Record<string, string>>;
 
 export function customResolver(dependencies: Dependency[] | undefined): Plugin {
   const depNames = dependencies
@@ -9,27 +11,27 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
     : "";
   const topLevelDeps = new RegExp(`^${depNames}$`);
 
-  const pkgJsonResolvedDeps = {
-    // "react-dom@17.0.2": {
-    //   "loose-envify": "^1.1.0",
-    //   "object-assign": "^4.1.1",
-    // },
-  };
+  const pkgJsonResolvedDeps: PkgJsonResolvedDeps = {};
 
   return {
     name: "customResolver",
     setup: (build) => {
       // handle relative paths within a dep
-      build.onResolve({ filter: /^\.+\//, namespace: "unpkg" }, (args: any) => {
-        const ret = {
-          namespace: "unpkg",
-          path: new URL(args.path, "https://unpkg.com" + args.resolveDir + "/")
-            .href,
-        };
+      build.onResolve(
+        { filter: /^\.+\//, namespace: "unpkg" },
+        (args: OnResolveArgs) => {
+          const ret = {
+            namespace: "unpkg",
+            path: new URL(
+              args.path,
+              "https://unpkg.com" + args.resolveDir + "/"
+            ).href,
+          };
 
-        console.log("onResolve: paths within a dep", args.path, ret);
-        return ret;
-      });
+          console.log("onResolve: paths within a dep", args.path, ret);
+          return ret;
+        }
+      );
 
       // handle main file of a sub dep
       build.onResolve(
@@ -45,26 +47,72 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
             dependencyOf,
             "pkgJsonDeps",
             pkgJsonResolvedDeps,
-            "args.path",
-            args.path,
+            "args",
+            args,
             "semver",
             semver.valid("1.2.3")
             // "path",
             // path
           );
 
-          const ret = {
-            namespace: "unpkg",
-            path: `https://unpkg.com/${args.path}`,
+          // args.path could be package or package/path or @scopedpackage/foo or @scopedpackage/foo/path
+          const getSubDepPathWithVersion = (): string | undefined => {
+            let packageName = "";
+            let packageFilePath;
+            if (args.path.startsWith("@")) {
+              // Matches eg (@aaa/bbb)(/ccc) or (@aaa/bbb)
+              //  - group 1 everything upto but not including the 2nd slash
+              //  - group 2 the rest (if present)
+              // According to: https://npm.runkit.com/validate-npm-package-name
+              // If it's a scoped package, package name must have one and only one slash
+              // So everything else would be a file within the package
+              const matches = args.path.match(/^([^/]*\/[^/]*)(.*)/);
+              packageName = matches[1];
+              packageFilePath = matches.length === 3 ? matches[2] : "";
+            }
+
+            // Matches eg (aaa) or (aaa)(/bbb)
+            //  - group 1 everything upto but not including the 1st slash
+            //  - group 2 the rest (if present)
+            // According to: https://npm.runkit.com/validate-npm-package-name
+            // If it's not a scoped package, package name cannot have a slash
+            // So everything from 1st slash onwords (if present) would be a file within the package
+            const matches = args.path.match(/^([^/]*)(.*)/);
+            packageName = matches[1];
+            packageFilePath = matches.length === 3 ? matches[2] : "";
+
+            if (
+              dependencyOf.length === 2 &&
+              dependencyOf[1] in pkgJsonResolvedDeps &&
+              packageName in pkgJsonResolvedDeps[dependencyOf[1]]
+            ) {
+              const version = pkgJsonResolvedDeps[dependencyOf[1]][packageName];
+              return `${packageName}@${version}${packageFilePath}`;
+            }
           };
 
-          console.log("onResolve: main file of a sub dep", args, ret);
-          return ret;
+          const path = getSubDepPathWithVersion();
+
+          if (path) {
+            const ret = {
+              namespace: "unpkg",
+              path: `https://unpkg.com/${path}`,
+            };
+            
+            console.log("onResolve: main file of a sub dep", args, ret);
+            return ret;
+          }
+
+          throw new ResolveError(
+            "Sub dependency missing",
+            args,
+            pkgJsonResolvedDeps
+          );
         }
       );
 
       // handle main file of a dep
-      build.onResolve({ filter: topLevelDeps }, async (args: any) => {
+      build.onResolve({ filter: topLevelDeps }, async (args: OnResolveArgs) => {
         // console.log("handle main file of a dep", args, dependencies);
         const version =
           dependencies &&
@@ -82,23 +130,25 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
           ...(pkgJson.peerDependencies ?? {}),
         });
 
-        const resolvedDeps = await Promise.all(pkgJsonDeps.map(async ([dep, ver]) => {
-          const npmResponse: Response = await fetch(
-            `https://registry.npmjs.org/${dep}`
-          );
-          const npmJson = await npmResponse.json();
-          const versions = npmJson.versions
-            ? Object.keys(npmJson.versions)
-            : [];
+        const resolvedDeps = await Promise.all(
+          pkgJsonDeps.map(async ([dep, ver]) => {
+            const npmResponse: Response = await fetch(
+              `https://registry.npmjs.org/${dep}`
+            );
+            const npmJson = await npmResponse.json();
+            const versions = npmJson.versions
+              ? Object.keys(npmJson.versions)
+              : [];
 
-          const maxVersion = semver.maxSatisfying(versions, ver as string);
-          console.log("maxVersion", maxVersion, ver);
+            const maxVersion = semver.maxSatisfying(versions, ver as string);
+            console.log("maxVersion", maxVersion, ver);
 
-          if (!maxVersion) {
-            console.error(`${ver} is not a valid semver for ${dep}`);
-          }
-          return [dep, maxVersion ?? null];
-        }));
+            if (!maxVersion) {
+              console.error(`${ver} is not a valid semver for ${dep}`);
+            }
+            return [dep, maxVersion ?? null];
+          })
+        );
 
         console.log("resolvedDeps", resolvedDeps);
         pkgJsonResolvedDeps[path] = Object.fromEntries(resolvedDeps);
@@ -113,7 +163,7 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
       });
 
       // anything else - should only be virtual tree files
-      build.onResolve({ filter: /.*/ }, (args) => {
+      build.onResolve({ filter: /.*/ }, (args: OnResolveArgs) => {
         // console.log("onResolve: should only be virtual tree files", args);
         if (args.kind === "entry-point") {
           return { namespace: "virtual", path: "/" + args.path };
@@ -134,3 +184,21 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
     },
   };
 }
+
+export class ResolveError extends Error {
+  args: OnResolveArgs;
+  pkgJsonResolvedDeps: PkgJsonResolvedDeps;
+
+  constructor(
+    message: string,
+    args: OnResolveArgs,
+    pkgJsonResolvedDeps: PkgJsonResolvedDeps
+  ) {
+    super(message);
+    this.name = "ResolveError";
+    this.args = args;
+    this.pkgJsonResolvedDeps = pkgJsonResolvedDeps;
+  }
+}
+
+export const isResolveError = (e: Error) => e.name === "ResolveError";

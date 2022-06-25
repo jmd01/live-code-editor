@@ -1,11 +1,12 @@
 import { Box } from "@mui/material";
 import * as esbuild from "esbuild-wasm";
-import { customResolver } from "./plugins/customResolver";
+import { customResolver, isResolveError, ResolveError } from "./plugins/customResolver";
 import { fetchPlugin, tsxFetchPlugin } from "./plugins/fetch-plugin";
 import { useCallback, useEffect, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { styled } from "@mui/material/styles";
 import { Dependency, FileNode } from "src/pages/problems/problem/types";
+import { match } from "ts-pattern";
 
 type PreviewProps = {
   tree: FileNode[];
@@ -20,7 +21,7 @@ const Preview = ({
   editorValue,
   dependencies,
 }: PreviewProps) => {
-  // console.log("Preview", activeFile, editorValue);
+  console.log("Preview", dependencies, dependencies);
   const initialisedEsbuild = useRef<Promise<void> | null>(null);
   useEffect(() => {
     if (!initialisedEsbuild.current) {
@@ -41,30 +42,42 @@ const Preview = ({
     // console.log("activeFile", activeFile);
     console.log("treeWithLatestEditorValue", treeWithLatestEditorValue);
 
-    await initialisedEsbuild.current;
-    const result = await esbuild.build({
-      entryPoints: ["index.tsx"],
-      plugins: [customResolver(dependencies), tsxFetchPlugin(treeWithLatestEditorValue)],
-      bundle: true,
-      write: false,
-    });
+    try {
+      await initialisedEsbuild.current;
+      const result = await esbuild.build({
+        entryPoints: ["index.tsx"],
+        plugins: [
+          customResolver(dependencies),
+          tsxFetchPlugin(treeWithLatestEditorValue),
+        ],
+        bundle: true,
+        write: false,
+      });
 
-    const js = result.outputFiles[0].text;
-    // console.log(js);
+      const js = result.outputFiles[0].text;
+      // console.log(js);
 
-    const iframe = document.getElementById("iframe") as HTMLIFrameElement;
-    // console.log("iframe", iframe);
-    iframe.contentWindow?.postMessage(
-      { type: "onload", js, css: "", html: '<div id="root"></div>' },
-      "http://localhost:4001"
-    );
-  }, [tree, editorValue]);
+      const iframe = document.getElementById("iframe") as HTMLIFrameElement;
+      // console.log("iframe", iframe);
+      iframe.contentWindow?.postMessage(
+        { type: "onload", js, css: "", html: '<div id="root"></div>' },
+        "http://localhost:4001"
+      );
+    } catch (e) {
+      if (e instanceof ResolveError) {
+        console.error("[Bundling error: ResolveError]", e);
+      } else {
+
+        console.error("[Bundling error]", e);
+      }
+    }
+  }, [tree, editorValue, dependencies]);
 
   const debouncedBundle = useDebouncedCallback(bundle, 250);
 
   useEffect(() => {
     debouncedBundle();
-  }, [debouncedBundle, tree, editorValue]);
+  }, [debouncedBundle, tree, editorValue, dependencies]);
 
   return (
     <Box

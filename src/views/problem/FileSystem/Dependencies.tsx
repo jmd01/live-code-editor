@@ -14,8 +14,8 @@ type FormValues = {
 };
 
 type DependenciesProps = {
-  dependencies: Dependency[];
-  setDependencies: Dispatch<SetStateAction<Dependency[]>>;
+  dependencies: Dependency[] | undefined;
+  setDependencies: Dispatch<SetStateAction<Dependency[] | undefined>>;
 };
 export const Dependencies = ({
   dependencies,
@@ -43,7 +43,7 @@ export const Dependencies = ({
 
 type FieldArrayProps = {
   control: Control<FormValues>;
-  setDependencies: Dispatch<SetStateAction<Dependency[]>>;
+  setDependencies: Dispatch<SetStateAction<Dependency[] | undefined>>;
 };
 const FieldArray = ({ control, setDependencies }: FieldArrayProps) => {
   const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
@@ -88,7 +88,7 @@ const DepField = ({ control, setDependencies, index }: DepFieldProps) => {
             onBlur={(e) => {
               if (e.target.value && depField.version) {
                 setDependencies((deps) => [
-                  ...deps,
+                  ...(deps ?? []),
                   { name: e.target.value, version: depField.version },
                 ]);
               }
@@ -108,7 +108,7 @@ const DepField = ({ control, setDependencies, index }: DepFieldProps) => {
               console.log("onBlur", e.target.value, depField.name);
               if (e.target.value && depField.name) {
                 setDependencies((deps) => [
-                  ...deps,
+                  ...(deps ?? []),
                   { name: depField.name, version: e.target.value },
                 ]);
               }

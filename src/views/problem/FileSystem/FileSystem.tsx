@@ -44,8 +44,8 @@ const FileSystem = ({
   tree: FileNode[];
   setTree: Dispatch<SetStateAction<FileNode[] | undefined>>;
   setActiveFile: (value: FileNode) => void;
-  dependencies: Dependency[];
-  setDependencies: Dispatch<SetStateAction<Dependency[]>>
+  dependencies: Dependency[] | undefined;
+  setDependencies: Dispatch<SetStateAction<Dependency[] | undefined>>
 }) => {
   const theme = useTheme();
   const { settings } = useSettings();
