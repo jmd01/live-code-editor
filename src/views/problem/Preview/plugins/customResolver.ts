@@ -28,7 +28,7 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
             ).href,
           };
 
-          console.log("onResolve: paths within a dep", args.path, ret);
+          // console.log("onResolve: paths within a dep", args.path, ret);
           return ret;
         }
       );
@@ -42,18 +42,18 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
           );
 
           // const path = pkgJsonDeps[dependencyOf][args.path];
-          console.log(
-            "dependencyOf",
-            dependencyOf,
-            "pkgJsonDeps",
-            pkgJsonResolvedDeps,
-            "args",
-            args,
-            "semver",
-            semver.valid("1.2.3")
-            // "path",
-            // path
-          );
+          // console.log(
+          //   "dependencyOf",
+          //   dependencyOf,
+          //   "pkgJsonDeps",
+          //   pkgJsonResolvedDeps,
+          //   "args",
+          //   args,
+          //   "semver",
+          //   semver.valid("1.2.3")
+          //   // "path",
+          //   // path
+          // );
 
           // args.path could be package or package/path or @scopedpackage/foo or @scopedpackage/foo/path
           const getSubDepPathWithVersion = (): string | undefined => {
@@ -99,7 +99,7 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
               path: `https://unpkg.com/${path}`,
             };
             
-            console.log("onResolve: main file of a sub dep", args, ret);
+            // console.log("onResolve: main file of a sub dep", args, ret);
             return ret;
           }
 
@@ -141,7 +141,7 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
               : [];
 
             const maxVersion = semver.maxSatisfying(versions, ver as string);
-            console.log("maxVersion", maxVersion, ver);
+            // console.log("maxVersion", maxVersion, ver);
 
             if (!maxVersion) {
               console.error(`${ver} is not a valid semver for ${dep}`);
@@ -150,7 +150,7 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
           })
         );
 
-        console.log("resolvedDeps", resolvedDeps);
+        // console.log("resolvedDeps", resolvedDeps);
         pkgJsonResolvedDeps[path] = Object.fromEntries(resolvedDeps);
 
         const ret = {
@@ -158,7 +158,7 @@ export function customResolver(dependencies: Dependency[] | undefined): Plugin {
           path: `https://unpkg.com/${path}`,
         };
 
-        console.log("onResolve: main file of a dep", args, ret);
+        // console.log("onResolve: main file of a dep", args, ret);
         return ret;
       });
 

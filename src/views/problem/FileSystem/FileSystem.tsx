@@ -18,7 +18,7 @@ import {
   LanguageTypescript,
 } from "mdi-material-ui";
 import pathListToTree from "./utils/pathListToTree";
-import { Box, PaletteMode, Typography } from "@mui/material";
+import { Box, PaletteMode, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import * as Path from "path-browserify";
 import type { DataNode, Key } from "rc-tree/lib/interface";
@@ -45,7 +45,7 @@ const FileSystem = ({
   setTree: Dispatch<SetStateAction<FileNode[] | undefined>>;
   setActiveFile: (value: FileNode) => void;
   dependencies: Dependency[] | undefined;
-  setDependencies: Dispatch<SetStateAction<Dependency[] | undefined>>
+  setDependencies: Dispatch<SetStateAction<Dependency[] | undefined>>;
 }) => {
   const theme = useTheme();
   const { settings } = useSettings();
@@ -262,7 +262,9 @@ const FileSystem = ({
       >
         <style dangerouslySetInnerHTML={{ __html: getStyles(settings.mode) }} />
 
-        <Typography variant="h6">Files</Typography>
+        <Stack padding="4px 8px 0 8px">
+          <Typography variant="h6">Files</Typography>
+        </Stack>
 
         <Tree<TreeDataType>
           expandedKeys={expandedKeys}
@@ -283,7 +285,7 @@ const FileSystem = ({
           flexShrink: 1,
           minHeight: "280px",
           overflow: "hidden",
-          scroll: "auto"
+          scroll: "auto",
         }}
       >
         <Dependencies

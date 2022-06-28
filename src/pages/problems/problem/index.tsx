@@ -11,7 +11,7 @@ import * as testingFileTrees from "./testingFileTrees";
 import { useMonaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import { useLocalStorage } from "react-use";
-import { FileNode, DependenciesType, Dependency } from "./types";
+import { FileNode, Dependency } from "./types";
 
 const withNoSSR = (Component: React.FunctionComponent) =>
   dynamic(() => Promise.resolve(Component), { ssr: false });
@@ -45,22 +45,15 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
     testingTree ?? []
   );
   const [dependencies, setDependencies] = useLocalStorage<Dependency[]>(
-    `user:${userId}|problem:${id}|deps`,
-    [{ name: "react", version: "17.0.2" }]
+    `user:${userId}|problem:${id}|deps`
   );
   const [activeFile, setActiveFile] = useState<FileNode | undefined>(
     testingFileTrees.tree[5]
   );
-  // const [editorValue, setEditorValue] = useState("");
-
-  // useEffect(() => {
-  //   setEditorValue(activeFile?.contents ?? "");
-  // }, [activeFile]);
 
   const monaco = useMonaco();
 
   useEffect(() => {
-    console.log("defineTheme");
     monaco?.editor.defineTheme("vs-modified", vsTheme);
     monaco?.editor.defineTheme("vs-dark-modified", vsDarkTheme);
   }, [monaco]);
@@ -134,12 +127,12 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
                 />
               </Box>
             )}
-            <Preview
+            {/* <Preview
               tree={tree ?? []}
               editorValue={editorValue}
               activeFile={activeFile}
               dependencies={dependencies}
-            />
+            /> */}
           </Stack>
         </Stack>
       </Grid>

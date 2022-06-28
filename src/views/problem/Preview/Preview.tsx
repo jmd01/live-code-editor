@@ -1,12 +1,17 @@
-import { Box } from "@mui/material";
+import { Box, Icon, Stack, Typography } from "@mui/material";
 import * as esbuild from "esbuild-wasm";
-import { customResolver, isResolveError, ResolveError } from "./plugins/customResolver";
+import {
+  customResolver,
+  isResolveError,
+  ResolveError,
+} from "./plugins/customResolver";
 import { fetchPlugin, tsxFetchPlugin } from "./plugins/fetch-plugin";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { styled } from "@mui/material/styles";
 import { Dependency, FileNode } from "src/pages/problems/problem/types";
 import { match } from "ts-pattern";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 type PreviewProps = {
   tree: FileNode[];
@@ -21,13 +26,20 @@ const Preview = ({
   editorValue,
   dependencies,
 }: PreviewProps) => {
-  console.log("Preview", dependencies, dependencies);
+  // console.log("dependencies", dependencies);
+  const [bundlerError, setBundlerError] = useState(false);
+
   const initialisedEsbuild = useRef<Promise<void> | null>(null);
   useEffect(() => {
+    // console.log(initialisedEsbuild, esbuild);
     if (!initialisedEsbuild.current) {
-      initialisedEsbuild.current = esbuild.initialize({
-        wasmURL: "/esbuild-0-14-43.wasm",
-      });
+      try {
+        initialisedEsbuild.current = esbuild.initialize({
+          wasmURL: "/esbuild-0-14-43.wasm",
+        });
+      } catch {
+        // no-op
+      }
     }
   }, []);
 
@@ -40,7 +52,7 @@ const Preview = ({
 
     // console.log("tree", tree);
     // console.log("activeFile", activeFile);
-    console.log("treeWithLatestEditorValue", treeWithLatestEditorValue);
+    // console.log("treeWithLatestEditorValue", treeWithLatestEditorValue);
 
     try {
       await initialisedEsbuild.current;
@@ -63,13 +75,15 @@ const Preview = ({
         { type: "onload", js, css: "", html: '<div id="root"></div>' },
         "http://localhost:4001"
       );
+
+      setBundlerError(false);
     } catch (e) {
       if (e instanceof ResolveError) {
-        console.error("[Bundling error: ResolveError]", e);
+        // console.error("[Bundling error: ResolveError]", e);
       } else {
-
-        console.error("[Bundling error]", e);
+        // console.error("[Bundling error]", e);
       }
+      setBundlerError(true);
     }
   }, [tree, editorValue, dependencies]);
 
@@ -86,7 +100,27 @@ const Preview = ({
         width: "50%",
       }}
     >
-      <Iframe id="iframe" src="http://localhost:4001/" />
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        padding={2}
+        direction="column"
+        height="100%"
+        display={bundlerError ? "flex" : "none"}
+      >
+        <Stack alignItems="center" direction="row" spacing={1}>
+          <ErrorOutlineIcon color="error" />
+          <Typography variant="h6" color="error">
+            Build error
+          </Typography>
+        </Stack>
+        <Typography variant="subtitle2">Check your console log</Typography>
+      </Stack>
+      <Iframe
+        style={{ display: bundlerError ? "none" : "block" }}
+        id="iframe"
+        src="http://localhost:4001/"
+      />
     </Box>
   );
 };
