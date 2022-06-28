@@ -127,12 +127,12 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
                 />
               </Box>
             )}
-            {/* <Preview
+            <Preview
               tree={tree ?? []}
               editorValue={editorValue}
               activeFile={activeFile}
               dependencies={dependencies}
-            /> */}
+            />
           </Stack>
         </Stack>
       </Grid>

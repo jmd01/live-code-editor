@@ -6,3 +6,4 @@ export type FileNode = {
 };
 
 export type Dependency = { name: string; version: string };
+export type DependencyWithId = Dependency & { uid: string };

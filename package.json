@@ -77,7 +77,8 @@
     "resolve": "^1.22.1",
     "semver": "^7.3.7",
     "ts-pattern": "^4.0.2",
-    "use-debounce": "^8.0.1"
+    "use-debounce": "^8.0.1",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/node": "16.11.11",
@@ -87,6 +88,7 @@
     "@types/react-datepicker": "4.3.2",
     "@types/resolve": "^1.20.2",
     "@types/semver": "^7.3.10",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "5.6.0",
     "@typescript-eslint/parser": "5.11.0",
     "eslint": "7.32.0",

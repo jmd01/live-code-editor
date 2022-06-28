@@ -3,11 +3,18 @@ import {
   IconButton,
   Input,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
-import { Dispatch, SetStateAction, useState } from "react";
-import type { Dependency } from "src/pages/problems/problem/types";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useState,
+} from "react";
+import type {
+  Dependency,
+  DependencyWithId,
+} from "src/pages/problems/problem/types";
 import {
   useForm,
   Controller,
@@ -15,13 +22,13 @@ import {
   Control,
   useWatch,
   UseFieldArrayRemove,
-  FieldArrayWithId,
 } from "react-hook-form";
 import Plus from "mdi-material-ui/Plus";
 import Delete from "mdi-material-ui/Delete";
+import { v4 } from "uuid";
 
 type FormValues = {
-  dependencies: Dependency[];
+  dependencies: DependencyWithId[];
 };
 
 type DependenciesProps = {
@@ -33,23 +40,86 @@ export const Dependencies = ({
   setDependencies,
 }: DependenciesProps) => {
   const defaultValues = {
-    dependencies: [, ...(dependencies ?? [{ name: "", version: "" }])],
+    dependencies: [...(dependencies ?? [{ name: "", version: "", id: v4() }])],
   };
 
-  const { control } = useForm<FormValues>({
+  const { control, watch } = useForm<FormValues>({
     defaultValues,
   });
+
+  const watchedFields = watch("dependencies");
 
   const { prepend, remove, fields } = useFieldArray({
     control,
     name: "dependencies",
   });
 
-  const [duplicateErrorFields, setDuplicateErrorFields] = useState<Set<string>>(
-    new Set()
+  const [duplicateErrorFields, setDuplicateErrorFields] = useState<string[]>(
+    []
   );
 
-  console.log("dependencies", dependencies);
+  const handleBlur = useCallback(
+    (updatedField: DependencyWithId) => {
+      const updatedFields = watchedFields.map((field) =>
+        field.uid === updatedField.uid ? updatedField : field
+      );
+
+      const errorFieldIds = updatedFields.reduce<string[]>((acc, curField) => {
+        const dupeNameFields = updatedFields.filter(
+          (field) => field.name && field.name === curField.name
+        );
+        if (dupeNameFields.length > 1) {
+          return [...acc, curField.uid];
+        }
+        return acc;
+      }, []);
+
+      setDuplicateErrorFields(errorFieldIds);
+
+      const validDeps = updatedFields
+        .filter(
+          (field) =>
+            field.name && field.version && !errorFieldIds.includes(field.uid)
+        )
+        .map(({ name, version }) => ({ name, version }));
+
+        // console.log("updatedField", updatedField)
+
+      setDependencies(validDeps);
+    },
+    [watchedFields]
+  );
+  console.log("dependencies", dependencies, "watchedFields", watchedFields);
+
+  const handleDelete = useCallback(
+    (updatedField: DependencyWithId) => {
+      const updatedFields = watchedFields.filter(
+        (field) => field.uid !== updatedField.uid
+      );
+
+      const errorFieldIds = updatedFields.reduce<string[]>((acc, curField) => {
+        const dupeNameFields = updatedFields.filter(
+          (field) => field.name && field.name === curField.name
+        );
+        if (dupeNameFields.length > 1) {
+          return [...acc, curField.uid];
+        }
+        return acc;
+      }, []);
+
+      setDuplicateErrorFields(errorFieldIds);
+
+      const validDeps = updatedFields
+        .filter(
+          (field) =>
+            field.name && field.version && !errorFieldIds.includes(field.uid)
+        )
+        .map(({ name, version }) => ({ name, version }));
+
+      setDependencies(validDeps);
+    },
+    [fields]
+  );
 
   return (
     <>
@@ -64,7 +134,7 @@ export const Dependencies = ({
           size="small"
           variant="text"
           startIcon={<Plus />}
-          onClick={() => prepend({ name: "", version: "" })}
+          onClick={() => prepend({ name: "", version: "", uid: v4() })}
         >
           Add
         </Button>
@@ -74,13 +144,11 @@ export const Dependencies = ({
           <DepField
             key={depField.id}
             control={control}
-            dependencies={dependencies}
-            setDependencies={setDependencies}
             index={index}
             remove={remove}
-            fields={fields}
-            setDuplicateErrorFields={setDuplicateErrorFields}
-            isDuplicateError={duplicateErrorFields.has(depField.id)}
+            isDuplicateError={duplicateErrorFields.includes(depField.uid)}
+            handleBlur={handleBlur}
+            handleDelete={handleDelete}
           />
         ))}
       </Stack>
@@ -90,25 +158,22 @@ export const Dependencies = ({
 
 type DepFieldProps = {
   control: Control<FormValues>;
-  dependencies: Dependency[] | undefined;
-  setDependencies: Dispatch<SetStateAction<Dependency[] | undefined>>;
-  setDuplicateErrorFields: Dispatch<SetStateAction<Set<string>>>;
   isDuplicateError: boolean;
   index: number;
   remove: UseFieldArrayRemove;
-  fields: FieldArrayWithId<FormValues, "dependencies", "id">[];
+  handleBlur: (updatedField: DependencyWithId) => void;
+  handleDelete: (updatedField: DependencyWithId) => void;
 };
 const DepField = ({
   control,
-  setDependencies,
-  dependencies,
-  setDuplicateErrorFields,
   isDuplicateError,
   index,
   remove,
-  fields,
+  handleBlur,
+  handleDelete,
 }: DepFieldProps) => {
   const depField = useWatch({ name: `dependencies.${index}`, control });
+
   return (
     <Stack spacing={1}>
       <Stack spacing={2} direction="row" alignItems="center">
@@ -120,119 +185,8 @@ const DepField = ({
               {...field}
               error={isDuplicateError}
               placeholder="Package name"
-              onBlur={(e) => {
-                console.log("dependencies", dependencies);
-                debugger;
-
-                // Duplicate package names are not allowed
-                console.log(
-                  e.target.value,
-                  fields,
-                  fields.some((field) => field.name === e.target.value)
-                );
-                if (
-                  e.target.value &&
-                  fields.some((field) => field.name === e.target.value)
-                ) {
-                  // If changing from valid to invalid, the valid name will be in deps[]
-                  // So we need to remove it
-                  if (!isDuplicateError) {
-                    setDependencies((dependencies) => {
-                      const filteredDeps = (dependencies ?? []).filter(
-                        ({ name }) => name !== fields[index].name
-                      );
-                      console.log(
-                        "dependencies",
-                        dependencies,
-                        "filteredDeps",
-                        filteredDeps
-                      );
-                      return filteredDeps;
-                    });
-                  }
-
-                  const duplicateFieldIds = fields
-                    .filter((field) => field.name === e.target.value)
-                    .map(({ id }) => id);
-
-                  setDuplicateErrorFields((errorFields) => new Set([
-                    ...duplicateFieldIds,
-                    ...errorFields
-                  ]));
-
-                  field.onBlur();
-                  return;
-                } else {
-                  const idsToRemove = fields
-                    .filter((f) => f.name === field.value)
-                    .map(({ id }) => id);
-
-                    setDuplicateErrorFields((errorFields) => {
-                      const filteredFields = [...errorFields].filter(id => !idsToRemove.includes(id))
-                      return new Set([
-                        ...filteredFields
-                      ]);
-                    });
-                  }
-
-                if (e.target.value && depField.version) {
-                  setDependencies((dependencies) => {
-                    const filteredDeps = (dependencies ?? []).filter(
-                      ({ name }) => name !== fields[index].name
-                    );
-                    const updatedDeps = [
-                      ...filteredDeps,
-                      { name: e.target.value, version: depField.version },
-                    ];
-                    console.log(
-                      "dependencies",
-                      dependencies,
-                      "filteredDeps",
-                      filteredDeps,
-                      "updatedDeps",
-                      updatedDeps
-                    );
-                    return updatedDeps;
-                  });
-                } else {
-                  if (e.target.value) {
-                    setDependencies((dependencies) => {
-                      const updatedDeps = dependencies?.filter(({ name }) => {
-                        console.log(
-                          "dependencies",
-                          dependencies,
-                          "name",
-                          name,
-                          "fields[index].name",
-                          fields[index].name
-                        );
-
-                        return name !== fields[index].name;
-                      });
-                      console.log(
-                        "dependencies",
-                        dependencies,
-                        "updatedDeps",
-                        updatedDeps
-                      );
-                      return updatedDeps;
-                    });
-                  } else {
-                    setDependencies((dependencies) => {
-                      const updatedDeps = dependencies?.filter((dep) =>
-                        fields.map((field) => field.name).includes(dep.name)
-                      );
-                      console.log(
-                        "dependencies",
-                        dependencies,
-                        "updatedDeps",
-                        updatedDeps
-                      );
-                      return updatedDeps;
-                    });
-                  }
-                }
-
+              onBlur={() => {
+                handleBlur(depField);
                 field.onBlur();
               }}
             />
@@ -245,53 +199,8 @@ const DepField = ({
             <Input
               {...field}
               placeholder="1.0.x"
-              onBlur={(e) => {
-                console.log("onBlur", e.target.value, depField.name);
-                if (
-                  e.target.value &&
-                  fields.some((field) => field.name === depField.name)
-                ) {
-                  // setDuplicateError(true);
-                  field.onBlur();
-                  return;
-                } else {
-                  // setDuplicateError(false);
-                }
-
-                if (e.target.value && depField.name) {
-                  setDependencies((dependencies) => {
-                    const filteredDeps = (dependencies ?? []).filter(
-                      ({ name }) => name !== fields[index].name
-                    );
-
-                    const updatedDeps = [
-                      ...filteredDeps,
-                      { name: depField.name, version: e.target.value },
-                    ];
-                    console.log(
-                      "dependencies",
-                      dependencies,
-                      "filteredDeps",
-                      filteredDeps,
-                      "updatedDeps",
-                      updatedDeps
-                    );
-                    return updatedDeps;
-                  });
-                } else {
-                  setDependencies((dependencies) => {
-                    const updatedDeps = dependencies?.filter(
-                      ({ name }) => name !== fields[index].name
-                    );
-                    console.log(
-                      "dependencies",
-                      dependencies,
-                      "updatedDeps",
-                      updatedDeps
-                    );
-                    return updatedDeps;
-                  });
-                }
+              onBlur={() => {
+                handleBlur(depField);
                 field.onBlur();
               }}
             />
@@ -302,20 +211,7 @@ const DepField = ({
           size="small"
           onClick={() => {
             remove(index);
-            if (depField.name) {
-              setDependencies((dependencies) => {
-                const updatedDeps = dependencies?.filter(
-                  ({ name }) => name !== fields[index].name
-                );
-                console.log(
-                  "dependencies",
-                  dependencies,
-                  "updatedDeps",
-                  updatedDeps
-                );
-                return updatedDeps;
-              });
-            }
+            handleDelete(depField);
           }}
         >
           <Delete />
