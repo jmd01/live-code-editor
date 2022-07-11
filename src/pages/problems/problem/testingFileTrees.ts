@@ -1,3 +1,42 @@
+export const treeTest = [
+  {
+    id: "6",
+    path: "index.tsx",
+    contents: `import getNameV5 from "@jmd01/package1"
+getNameV5()`,
+  },
+  {
+    id: "5",
+    path: "index_example5.tsx",
+    contents: `import getNameV4 from "@jmd01/package1"
+import getName3V5 from "@jmd01/package3"
+getNameV4()
+getName3V5()`,
+  },
+  {
+    id: "4",
+    path: "index_example4.tsx",
+    contents: `import getNameV4 from "@jmd01/package1"
+import getName3V3 from "@jmd01/package3"
+getNameV4()
+getName3V3()`,
+  },
+  {
+    id: "3",
+    path: "index_example3.tsx",
+    contents: `import getNameV4 from "@jmd01/package1"
+getNameV4()`,
+  },
+  {
+    id: "2",
+    path: "index_example2.tsx",
+    contents: `import getNameV3 from "@jmd01/package1"
+import getName3V3 from "@jmd01/package3"
+
+getNameV3()
+getName3V3()`,
+  },
+];
 export const tree = [
   {
     id: "1",

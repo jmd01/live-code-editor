@@ -47,9 +47,7 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
   const [dependencies, setDependencies] = useLocalStorage<Dependency[]>(
     `user:${userId}|problem:${id}|deps`
   );
-  const [activeFile, setActiveFile] = useState<FileNode | undefined>(
-    testingFileTrees.tree[5]
-  );
+  const [activeFile, setActiveFile] = useState<FileNode | undefined>();
 
   const monaco = useMonaco();
 
@@ -68,9 +66,9 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
             }
           : fileNode;
       });
-      console.log("tree", tree);
-      console.log("activeFile", activeFile);
-      console.log("updatedTree", updatedTree);
+      // console.log("tree", tree);
+      // console.log("activeFile", activeFile);
+      // console.log("updatedTree", updatedTree);
 
       setTree(updatedTree);
 
@@ -104,8 +102,6 @@ const Problem = ({ id, userId }: { id: string; userId: string }) => {
             setActiveFile={onSelectFileSystemFile}
             dependencies={dependencies}
             setDependencies={setDependencies}
-
-
           />
 
           <Stack direction="row" height={"100%"} flexGrow={1}>

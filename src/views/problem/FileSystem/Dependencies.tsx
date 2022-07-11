@@ -89,7 +89,7 @@ export const Dependencies = ({
     },
     [watchedFields]
   );
-  console.log("dependencies", dependencies, "watchedFields", watchedFields);
+  // console.log("dependencies", dependencies, "watchedFields", watchedFields);
 
   const handleDelete = useCallback(
     (updatedField: DependencyWithId) => {
@@ -189,6 +189,10 @@ const DepField = ({
                 handleBlur(depField);
                 field.onBlur();
               }}
+              sx={{
+                width: "75%"
+              }}
+
             />
           )}
         />
@@ -203,6 +207,10 @@ const DepField = ({
                 handleBlur(depField);
                 field.onBlur();
               }}
+              sx={{
+                width: "25%"
+              }}
+
             />
           )}
         />
