@@ -153,7 +153,7 @@ const ProblemsTable = () => {
                               <Lock color={value ? "error" : "disabled"} />
                             ))
                             .otherwise(() => (
-                              <Link passHref href={"problems/problem"}>
+                              <Link passHref href={`problems/problem/${row.id}`}>
                                 {value}
                               </Link>
                             ))}

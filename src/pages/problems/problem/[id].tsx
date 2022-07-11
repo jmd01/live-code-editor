@@ -12,6 +12,7 @@ import { useMonaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import { useLocalStorage } from "react-use";
 import { FileNode, Dependency } from "./types";
+import { useRouter } from "next/router";
 
 const withNoSSR = (Component: React.FunctionComponent) =>
   dynamic(() => Promise.resolve(Component), { ssr: false });
@@ -37,8 +38,11 @@ const problemData = {
 };
 
 const testingTree = testingFileTrees.tree;
-const Problem = ({ id, userId }: { id: string; userId: string }) => {
+
+const Problem = ({ userId }: { userId: string }) => {
   const theme = useTheme();
+  const router = useRouter();
+  const { id } = router.query;
 
   const [tree, setTree] = useLocalStorage<FileNode[]>(
     `user:${userId}|problem:${id}|tree`,
