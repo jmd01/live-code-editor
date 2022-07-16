@@ -12,6 +12,7 @@ import { styled } from "@mui/material/styles";
 import { Dependency, FileNode } from "src/pages/problems/problem/types";
 import { match } from "ts-pattern";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { withNoSSR } from "../../../pages/problems/problem/withNoSSR";
 
 type PreviewProps = {
   tree: FileNode[];
@@ -67,7 +68,7 @@ const Preview = ({
       });
 
       const js = result.outputFiles[0].text;
-      // console.log(js);
+      console.log(js);
 
       const iframe = document.getElementById("iframe") as HTMLIFrameElement;
       // console.log("iframe", iframe);

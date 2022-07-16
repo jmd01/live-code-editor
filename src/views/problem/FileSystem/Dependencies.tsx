@@ -39,6 +39,7 @@ export const Dependencies = ({
   dependencies,
   setDependencies,
 }: DependenciesProps) => {
+  console.log(dependencies)
   const defaultValues = {
     dependencies: [...(dependencies ?? [{ name: "", version: "", id: v4() }])],
   };

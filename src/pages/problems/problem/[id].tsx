@@ -13,19 +13,8 @@ import { editor } from "monaco-editor";
 import { useLocalStorage } from "react-use";
 import { FileNode, Dependency } from "./types";
 import { useRouter } from "next/router";
-
-const withNoSSR = (Component: React.FunctionComponent) =>
-  dynamic(() => Promise.resolve(Component), { ssr: false });
-
-// export default withNoSSR;
-
-const MonacoEditor = dynamic(
-  () => import("../../../views/problem/MonacoEditor"),
-  {
-    ssr: false,
-    loading: () => <div>loading...</div>,
-  }
-);
+import MonacoEditor from "src/views/problem/MonacoEditor";
+import { withNoSSR } from "./withNoSSR";
 
 const problemData = {
   id: "1",
@@ -51,14 +40,10 @@ const Problem = ({ userId }: { userId: string }) => {
   const [dependencies, setDependencies] = useLocalStorage<Dependency[]>(
     `user:${userId}|problem:${id}|deps`
   );
+  console.log(dependencies, `user:${userId}|problem:${id}|deps`);
   const [activeFile, setActiveFile] = useState<FileNode | undefined>();
 
   const monaco = useMonaco();
-
-  useEffect(() => {
-    monaco?.editor.defineTheme("vs-modified", vsTheme);
-    monaco?.editor.defineTheme("vs-dark-modified", vsDarkTheme);
-  }, [monaco]);
 
   const onSelectFileSystemFile = (fileNode: FileNode) => {
     if (activeFile) {
@@ -83,6 +68,10 @@ const Problem = ({ userId }: { userId: string }) => {
   };
 
   const [editorValue, setEditorValue] = useState(activeFile?.contents);
+
+  if (!id) {
+    return null;
+  }
 
   return (
     <Grid container spacing={6} height={"100%"}>
@@ -109,7 +98,7 @@ const Problem = ({ userId }: { userId: string }) => {
           />
 
           <Stack direction="row" height={"100%"} flexGrow={1}>
-            {monaco && (
+            {monaco && activeFile && (
               <Box
                 sx={{
                   height: "100%",
@@ -140,20 +129,3 @@ const Problem = ({ userId }: { userId: string }) => {
   );
 };
 export default withNoSSR(Problem);
-
-const vsTheme: editor.IStandaloneThemeData = {
-  base: "vs",
-  inherit: true,
-  rules: [],
-  colors: {
-    "editor.background": "#F4F5FA",
-  },
-};
-const vsDarkTheme: editor.IStandaloneThemeData = {
-  base: "vs-dark",
-  inherit: true,
-  rules: [],
-  colors: {
-    "editor.background": "#28243D",
-  },
-};

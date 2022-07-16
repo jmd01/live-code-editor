@@ -6,15 +6,15 @@ import Editor, {
 } from "@monaco-editor/react";
 import * as Path from "path-browserify";
 import React, { useEffect, useMemo, useState } from "react";
-import { editor } from "monaco-editor";
+import { editor, languages } from "monaco-editor";
 import { useTheme } from "@mui/material/styles";
 import { useSettings } from "../../../@core/hooks/useSettings";
 import { AutoTypings, LocalStorageCache } from "monaco-editor-auto-typings";
 import { FileNode } from "src/pages/problems/problem/types";
-
-// export type DirtyFiles =
-//   | Record<FileNode["id"], FileNode["contents"]>
-//   | undefined;
+import { withNoSSR } from "src/pages/problems/problem/withNoSSR";
+import { parse } from "@babel/parser";
+import traverse from "@babel/traverse";
+import MonacoJSXHighlighter from "monaco-jsx-highlighter";
 
 type MonacoEditorProps = {
   tree: FileNode[];
@@ -32,7 +32,7 @@ const MonacoEditor = ({
   activeFile,
   setActiveFile,
   editorValue,
-  setEditorValue
+  setEditorValue,
 }: MonacoEditorProps) => {
   const theme = useTheme();
   const { settings } = useSettings();
@@ -52,17 +52,24 @@ const MonacoEditor = ({
     setPath(activeFile?.path);
   }, [activeFile]);
 
-  // useEffect(() => {
-  //   monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
-  //   monaco?.languages.typescript.typescriptDefaults.setCompilerOptions({
-  //     allowSyntheticDefaultImports: true,
-  //     jsx: monaco?.languages.typescript.JsxEmit.React,
-  //     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-  //     allowNonTsExtensions: true,
-  //     target: monaco.languages.typescript.ScriptTarget.ES2020,
-  //     // include: ["**/*"],
-  //   });
-  // }, [monaco]);
+  useEffect(() => {
+    monaco?.editor.defineTheme("vs-modified", vsTheme);
+    monaco?.editor.defineTheme("vs-dark-modified", vsDarkTheme);
+  }, [monaco]);
+
+  useEffect(() => {
+    console.log(monaco?.languages, monaco?.languages.typescript.JsxEmit.React);
+    monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+    monaco?.languages.typescript.typescriptDefaults.setCompilerOptions({
+      allowSyntheticDefaultImports: true,
+      jsx: monaco?.languages.typescript.JsxEmit.React,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      allowNonTsExtensions: true,
+      target: monaco.languages.typescript.ScriptTarget.ES2020,
+      // include: ["**/*"],
+    });
+
+  }, [monaco]);
 
   useEffect(() => {
     if (monaco) {
@@ -113,8 +120,20 @@ const MonacoEditor = ({
       // module: monaco.languages.typescript.ModuleKind.CommonJS,
       noEmit: true,
       typeRoots: ["node_modules/@types"],
+      jsx: languages.typescript.JsxEmit.React
     });
 
+    const monacoJSXHighlighter = new MonacoJSXHighlighter(
+      monaco, // references Range and other APIs
+      parse, // obtains an AST, internally passes to parse options: {...options, sourceType: "module",plugins: ["jsx"],errorRecovery: true}
+      traverse, // helps collecting the JSX expressions within the AST
+      monacoEditor // highlights the content of that editor via decorations
+    );
+    // Start the JSX highlighting and get the dispose function
+    let disposeJSXHighlighting = monacoJSXHighlighter.highlightOnDidChangeModelContent();
+    // Enhance monaco's editor.action.commentLine with JSX commenting and get its disposer
+    let disposeJSXCommenting = monacoJSXHighlighter.addJSXCommentCommand();
+  
     // monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
     //   noSemanticValidation: false,
     //   noSyntaxValidation: true,
@@ -124,6 +143,25 @@ const MonacoEditor = ({
     //   sourceCache: new LocalStorageCache(), // Cache loaded sources in localStorage. May be omitted
     //   monaco: monaco,
     // });
+
+    // @ts-ignore
+    // window.MonacoEnvironment.getWorkerUrl = (
+    //   _moduleId: string,
+    //   label: string
+    // ) => {
+    //   if (label === "json")
+    //     return "_next/static/json.worker.js";
+    //   if (label === "css")
+    //     return "_next/static/css.worker.js";
+    //   if (label === "html")
+    //     return "_next/static/html.worker.js";
+    //   if (
+    //     label === "typescript" ||
+    //     label === "javascript"
+    //   )
+    //     return "_next/static/ts.worker.js";
+    //   return "_next/static/editor.worker.js";
+    // };
   };
 
   useEffect(() => {
@@ -165,7 +203,7 @@ const MonacoEditor = ({
   );
 };
 
-export default MonacoEditor;
+export default withNoSSR(MonacoEditor);
 
 const getLanguage = (path: string | undefined) => {
   if (path) {
@@ -183,4 +221,21 @@ const getLanguage = (path: string | undefined) => {
     }
   }
   return undefined;
+};
+
+const vsTheme: editor.IStandaloneThemeData = {
+  base: "vs",
+  inherit: true,
+  rules: [],
+  colors: {
+    "editor.background": "#F4F5FA",
+  },
+};
+const vsDarkTheme: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [],
+  colors: {
+    "editor.background": "#28243D",
+  },
 };
